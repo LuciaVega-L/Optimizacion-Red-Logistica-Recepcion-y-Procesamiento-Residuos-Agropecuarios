@@ -1,0 +1,131 @@
+{
+  "_meta": {
+    "proyecto": "EcoResiduos del Llano S.A.S. - Optimización de Red Logística",
+    "descripcion": "Caso base con estimaciones realistas de oferta, capacidad, distancias viales y costos para el departamento del Meta",
+    "fase": "Paso 1 - Definición de Caso Base",
+    "unidades": {
+      "oferta_y_capacidad": "toneladas/semana",
+      "distancia": "kilómetros (km)",
+      "costo_transporte": "COP / (km * tonelada)",
+      "costo_operativo": "COP / tonelada"
+    },
+    "nota_documentacion": "Los datos de oferta, distancias y costos operativos son estimados con base en la geografía vial del departamento del Meta y la producción agropecuaria regional."
+  },
+  "parametros_globales": {
+    "costo_transporte_km_ton": 1200
+  },
+  "plantas": [
+    {
+      "id": "P1",
+      "nombre": "Planta Villavicencio",
+      "municipio": "Villavicencio",
+      "capacidad_maxima_ton_sem": 500,
+      "costo_operativo_ton": 25000
+    },
+    {
+      "id": "P2",
+      "nombre": "Planta Restrepo",
+      "municipio": "Restrepo",
+      "capacidad_maxima_ton_sem": 350,
+      "costo_operativo_ton": 22000
+    },
+    {
+      "id": "P3",
+      "nombre": "Planta Granada",
+      "municipio": "Granada",
+      "capacidad_maxima_ton_sem": 450,
+      "costo_operativo_ton": 20000
+    },
+    {
+      "id": "P4",
+      "nombre": "Planta Puerto Gaitán",
+      "municipio": "Puerto Gaitán",
+      "capacidad_maxima_ton_sem": 400,
+      "costo_operativo_ton": 24000
+    }
+  ],
+  "agroempresas": [
+    {
+      "id": "E01",
+      "nombre": "AgroPalma Cumaral",
+      "municipio": "Cumaral",
+      "sector": "Palma",
+      "oferta_ton_sem": 120
+    },
+    {
+      "id": "E02",
+      "nombre": "Arrocera Puerto López",
+      "municipio": "Puerto López",
+      "sector": "Arroz",
+      "oferta_ton_sem": 250
+    },
+    {
+      "id": "E03",
+      "nombre": "Ganadería Acacías",
+      "municipio": "Acacías",
+      "sector": "Ganadería",
+      "oferta_ton_sem": 90
+    },
+    {
+      "id": "E04",
+      "nombre": "AgroSanMartín",
+      "municipio": "San Martín",
+      "sector": "Ganadería/Palma",
+      "oferta_ton_sem": 180
+    },
+    {
+      "id": "E05",
+      "nombre": "BioCabuyaro Agro",
+      "municipio": "Cabuyaro",
+      "sector": "Palma/Arroz",
+      "oferta_ton_sem": 210
+    },
+    {
+      "id": "E06",
+      "nombre": "Agrollanos Puerto López",
+      "municipio": "Puerto López",
+      "sector": "Palma",
+      "oferta_ton_sem": 160
+    },
+    {
+      "id": "E07",
+      "nombre": "Forestal Cumaral",
+      "municipio": "Cumaral",
+      "sector": "Forestal",
+      "oferta_ton_sem": 110
+    },
+    {
+      "id": "E08",
+      "nombre": "Agro San Carlos Guaroa",
+      "municipio": "San Carlos de Guaroa",
+      "sector": "Palma/Arroz",
+      "oferta_ton_sem": 140
+    },
+    {
+      "id": "E09",
+      "nombre": "Ganadería Restrepo",
+      "municipio": "Restrepo",
+      "sector": "Ganadería",
+      "oferta_ton_sem": 80
+    },
+    {
+      "id": "E10",
+      "nombre": "Arrocera Granada",
+      "municipio": "Granada",
+      "sector": "Arroz",
+      "oferta_ton_sem": 200
+    }
+  ],
+  "matriz_distancias_km": {
+    "E01": {"P1": 28, "P2": 12, "P3": 105, "P4": 210},
+    "E02": {"P1": 83, "P2": 95, "P3": 150, "P4": 113},
+    "E03": {"P1": 28, "P2": 45, "P3": 60, "P4": 220},
+    "E04": {"P1": 65, "P2": 80, "P3": 25, "P4": 255},
+    "E05": {"P1": 115, "P2": 110, "P3": 180, "P4": 105},
+    "E06": {"P1": 83, "P2": 95, "P3": 150, "P4": 113},
+    "E07": {"P1": 28, "P2": 12, "P3": 105, "P4": 210},
+    "E08": {"P1": 85, "P2": 100, "P3": 90, "P4": 170},
+    "E09": {"P1": 18, "P2": 5, "P3": 100, "P4": 205},
+    "E10": {"P1": 85, "P2": 100, "P3": 10, "P4": 270}
+  }
+}
