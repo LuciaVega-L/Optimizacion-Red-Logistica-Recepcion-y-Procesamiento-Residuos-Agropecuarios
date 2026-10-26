@@ -31,7 +31,7 @@ ecoresiduos-optimizacion/
 │   │   ├── schemas/     Contratos de entrada/salida de la API (Pydantic)
 │   │   ├── api/routes/  Endpoints, uno por módulo
 │   │   └── services/    Lógica de negocio, un paquete por módulo
-│   ├── data/escenarios/ Datos de prueba (JSON)
+│   ├── data/escenarios/ Datos del caso (dataConfig.json = caso base)
 │   └── tests/           Pruebas unitarias (pytest)
 └── frontend/            Interfaz web (React + Vite)
     └── src/
@@ -52,6 +52,21 @@ ecoresiduos-optimizacion/
 | Genético | `services/genetico` | `pages/Genetico` | 3 |
 | Sensibilidad | `services/sensibilidad` | `pages/Sensibilidad` | 2 y 4 |
 | Comparativo | `services/comparativo` | `pages/Comparativo` | 4 |
+
+## Datos del caso base
+
+`backend/data/escenarios/dataConfig.json` contiene oferta de las 10 agroempresas, capacidad y
+costo operativo de las 4 plantas, matriz de distancias (km) y costo de transporte por km·ton.
+
+La matriz de costos **no** se guarda en el JSON; el backend la calcula
+(`services/red/repositorio.py`):
+
+```
+c_ij = distancia_ij × costo_transporte_km_ton + costo_operativo_j     [COP/ton]
+```
+
+Para otro escenario basta con copiar el archivo con otro nombre y modificarlo;
+aparece automáticamente en `GET /api/red/escenarios`.
 
 ## Cómo ejecutar
 

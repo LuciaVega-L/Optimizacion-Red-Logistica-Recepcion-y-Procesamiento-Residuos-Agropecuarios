@@ -20,4 +20,5 @@ Thumbs.db
 .idea/
 
 # Resultados generados
-backend/data/resultados/
+backend/data/resultados/*
+!backend/data/resultados/LEEME.txt

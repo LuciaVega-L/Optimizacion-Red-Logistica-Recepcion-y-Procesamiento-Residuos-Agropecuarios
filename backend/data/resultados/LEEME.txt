@@ -1,0 +1,2 @@
+Resultados generados por el sistema (reportes, corridas de sensibilidad).
+Su contenido NO se sube a GitHub (ver .gitignore); solo este archivo.

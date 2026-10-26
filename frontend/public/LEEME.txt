@@ -1,0 +1,2 @@
+Archivos estáticos del frontend (logo, favicon, imágenes).
+Vite los sirve tal cual desde la raíz del sitio.

@@ -1,0 +1,2 @@
+Diagramas del sistema: arquitectura, grafo de la red logística,
+componentes y secuencia. Guardar fuente editable (draw.io, .mmd) y exportación (.png/.svg).

@@ -1,0 +1,2 @@
+Informe técnico en formato IEEE (Rol 1).
+Aquí va el .tex (Overleaf) o el .docx del informe, más las figuras que use.
