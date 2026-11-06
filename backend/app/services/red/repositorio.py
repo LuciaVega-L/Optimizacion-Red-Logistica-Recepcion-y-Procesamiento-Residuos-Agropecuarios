@@ -17,19 +17,24 @@ ESCENARIO_BASE = "dataConfig"
 
 
 def listar_escenarios() -> list[str]:
-    if settings.usa_supabase:
-        from app.services.red import repositorio_supabase
-        return repositorio_supabase.listar_escenarios()
+    if settings.usa_bd:
+        from app.services.red import repositorio_bd
+        return repositorio_bd.listar_escenarios()
     return sorted(p.stem for p in DIR_ESCENARIOS.glob("*.json"))
 
 
 def cargar_escenario(nombre: str = ESCENARIO_BASE) -> dict:
-    """Devuelve el escenario con el formato de dataConfig.json (de Supabase o del archivo)."""
-    if settings.usa_supabase:
-        from app.services.red import repositorio_supabase
-        return repositorio_supabase.cargar_escenario(nombre)
+    """Devuelve el escenario con el formato de dataConfig.json.
+
+    Con FUENTE_DATOS=bd lo lee de PostgreSQL (mismas claves);
+    si no, lo lee del archivo en disco.
+    """
+    if settings.usa_bd:
+        from app.services.red import repositorio_bd
+        return repositorio_bd.cargar_escenario(nombre)
     with open(DIR_ESCENARIOS / f"{nombre}.json", encoding="utf-8") as f:
         return json.load(f)
+
 
 def calcular_costos(config: dict, incluir_costo_operativo: bool = True) -> list[list[float]]:
     """Matriz agroempresas x plantas de costo unitario (COP/ton)."""

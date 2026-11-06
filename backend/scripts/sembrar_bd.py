@@ -1,9 +1,9 @@
-"""Carga en Supabase los escenarios JSON de backend/data/escenarios/.
+"""Carga en la base de datos los escenarios JSON de backend/data/escenarios/.
 
 Uso (desde la carpeta backend/, con el .env configurado):
 
-    python -m scripts.sembrar_supabase              # carga los que no existan
-    python -m scripts.sembrar_supabase --reemplazar # sobrescribe los existentes
+    python -m scripts.sembrar_bd              # carga los que no existan
+    python -m scripts.sembrar_bd --reemplazar # sobrescribe los existentes
 
 Cada archivo <nombre>.json se guarda como el escenario <nombre>;
 dataConfig.json queda marcado como escenario base. Al final se lee cada
@@ -13,8 +13,8 @@ import argparse
 import json
 import sys
 
-from app.db.supabase_cliente import ErrorBaseDatos
-from app.services.red import repositorio, repositorio_supabase as bd
+from app.db.sesion import ErrorBaseDatos
+from app.services.red import repositorio, repositorio_bd as bd
 
 CLAVES_A_VERIFICAR = ("parametros_globales", "plantas", "agroempresas", "matriz_distancias_km")
 
@@ -24,7 +24,12 @@ def main() -> int:
     parser.add_argument("--reemplazar", action="store_true", help="sobrescribe escenarios existentes")
     args = parser.parse_args()
 
-    existentes = set(bd.listar_escenarios())
+    try:
+        existentes = set(bd.listar_escenarios())
+    except ErrorBaseDatos as e:
+        print(f"✘ No se pudo consultar la base de datos: {e}")
+        return 1
+
     archivos = sorted(repositorio.DIR_ESCENARIOS.glob("*.json"))
     if not archivos:
         print(f"No hay archivos .json en {repositorio.DIR_ESCENARIOS}")
@@ -39,8 +44,7 @@ def main() -> int:
             continue
         try:
             bd.guardar_escenario(
-                nombre,
-                config,
+                nombre, config,
                 descripcion=config.get("_meta", {}).get("descripcion"),
                 es_base=(nombre == repositorio.ESCENARIO_BASE),
                 reemplazar=args.reemplazar,
@@ -58,12 +62,12 @@ def main() -> int:
         else:
             print(f"  ✔ {nombre}: guardado y verificado")
 
-    print("\nResumen en la base de datos:")
-    for r in bd.resumen_escenarios():
+    print("\nHistorial de escenarios en la base de datos:")
+    for r in bd.historial_escenarios():
         base = " (base)" if r["es_base"] else ""
         print(f"  {r['nombre']}{base}: {r['num_agroempresas']} agroempresas, {r['num_plantas']} plantas, "
-              f"{r['num_rutas_habilitadas']} rutas · oferta {r['oferta_total']} / capacidad "
-              f"{r['capacidad_total']} t/sem · {r['estado_balance']}")
+              f"{r['num_rutas_habilitadas']} rutas · oferta {r['oferta_total']:g} / capacidad "
+              f"{r['capacidad_total']:g} t/sem · {r['estado_balance']} · {r['num_resultados']} resultados")
     return 1 if errores else 0
 
 
