@@ -14,6 +14,10 @@
   "parametros_globales": {
     "costo_transporte_km_ton": 1200
   },
+  "penalizaciones": {
+    "factorPlanta": 100000000,
+    "factorDemanda": 100000000
+  },
   "plantas": [
     {
       "id": "P1",
