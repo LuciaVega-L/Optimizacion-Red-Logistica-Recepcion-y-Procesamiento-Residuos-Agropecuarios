@@ -2,7 +2,7 @@ import random
 
 from .fitness import EvaluadorFitness
 from .cromosoma import FabricaCromosomas
-from .operadores import OperadoresGeneticos
+from . import operadores as ops
 
 
 class AlgoritmoGenetico:
@@ -15,6 +15,8 @@ class AlgoritmoGenetico:
         probCruce: float = 0.9,
         probMutacion: float = 0.2,
         tamTorneo: int = 3,
+        seleccion: str = "torneo",   # "torneo" | "ruleta"
+        cruce: str = "un_punto",     # "un_punto" | "dos_puntos"
         numElites: int = 2,
         paciencia: int = 0,
         semilla: int = None,
@@ -25,16 +27,22 @@ class AlgoritmoGenetico:
         self.probCruce = probCruce
         self.probMutacion = probMutacion
         self.tamTorneo = tamTorneo
+        self.seleccion = seleccion
+        self.cruce = cruce
         self.numElites = numElites
         self.paciencia = paciencia  # 0 = sin parada anticipada
 
         self.rng = random.Random(semilla)
         self.evaluador = EvaluadorFitness(datosRed)
         self.fabrica = FabricaCromosomas(datosRed, self.rng)
-        self.operadores = OperadoresGeneticos(datosRed, self.rng)
 
     def _evaluarPoblacion(self, poblacion: list) -> list:
         return [self.evaluador.evaluarIndividuo(ind) for ind in poblacion]
+
+    def _seleccionar(self, poblacion, aptitudes):
+        if self.seleccion == "ruleta":
+            return ops.seleccion_ruleta(poblacion, aptitudes, self.rng)
+        return ops.seleccion_torneo(poblacion, aptitudes, self.tamTorneo, self.rng)
 
     def ejecutar(self, verbose: bool = True) -> dict:
         poblacion = self.fabrica.crearPoblacion(self.tamanoPoblacion)
@@ -58,6 +66,8 @@ class AlgoritmoGenetico:
                 sinMejora += 1
 
             costos = [e["costoTotalZ"] for e in evaluaciones]
+          
+            aptitudes = [1.0 / (1.0 + c) for c in costos]
             historial.append({
                 "generacion": gen,
                 "mejorCostoZ": mejorEval["costoTotalZ"],
@@ -76,16 +86,17 @@ class AlgoritmoGenetico:
             # --- nueva generación ---
             nueva = [FabricaCromosomas.copiar(poblacion[k]) for k in orden[:self.numElites]]
             while len(nueva) < self.tamanoPoblacion:
-                p1 = self.operadores.seleccionTorneo(poblacion, costos, self.tamTorneo)
-                p2 = self.operadores.seleccionTorneo(poblacion, costos, self.tamTorneo)
+                p1 = self._seleccionar(poblacion, aptitudes)
+                p2 = self._seleccionar(poblacion, aptitudes)
 
                 if self.rng.random() < self.probCruce:
-                    h1, h2 = self.operadores.cruzar(p1, p2)
+                    funcionCruce = ops.cruce_un_punto if self.cruce == "un_punto" else ops.cruce_dos_puntos
+                    h1, h2 = funcionCruce(p1, p2, self.rng)
                 else:
                     h1, h2 = p1, p2
 
                 for hijo in (h1, h2):
-                    self.operadores.mutar(hijo, self.probMutacion)
+                    ops.mutar(hijo, self.probMutacion, self.rng)
                     self.fabrica.reparar(hijo)
                     if len(nueva) < self.tamanoPoblacion:
                         nueva.append(hijo)
