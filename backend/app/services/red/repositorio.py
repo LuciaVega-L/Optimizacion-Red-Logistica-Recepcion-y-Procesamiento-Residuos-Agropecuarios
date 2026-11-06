@@ -10,20 +10,26 @@ import json
 from pathlib import Path
 
 from app.schemas.red import ProblemaTransporte
+from app.core.config import settings
 
 DIR_ESCENARIOS = Path(__file__).resolve().parents[3] / "data" / "escenarios"
 ESCENARIO_BASE = "dataConfig"
 
 
 def listar_escenarios() -> list[str]:
+    if settings.usa_supabase:
+        from app.services.red import repositorio_supabase
+        return repositorio_supabase.listar_escenarios()
     return sorted(p.stem for p in DIR_ESCENARIOS.glob("*.json"))
 
 
 def cargar_escenario(nombre: str = ESCENARIO_BASE) -> dict:
-    """Devuelve el JSON del escenario tal como está en disco."""
+    """Devuelve el escenario con el formato de dataConfig.json (de Supabase o del archivo)."""
+    if settings.usa_supabase:
+        from app.services.red import repositorio_supabase
+        return repositorio_supabase.cargar_escenario(nombre)
     with open(DIR_ESCENARIOS / f"{nombre}.json", encoding="utf-8") as f:
         return json.load(f)
-
 
 def calcular_costos(config: dict, incluir_costo_operativo: bool = True) -> list[list[float]]:
     """Matriz agroempresas x plantas de costo unitario (COP/ton)."""
