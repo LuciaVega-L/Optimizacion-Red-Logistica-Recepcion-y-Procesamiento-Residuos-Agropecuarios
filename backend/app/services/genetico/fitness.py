@@ -63,7 +63,7 @@ class EvaluadorFitness:
 
         costoTotalZ = costoTransporte + costoOperativo + penalizacionOferta + penalizacionDemanda
         fitness = 1.0 / (1.0 + costoTotalZ)
-        esFactible = (penalizacionOferta == 0.0) and (penalizacionDemanda == 0.0)
+        esFactible = (penalizacionOferta <= 1e-3) and (penalizacionDemanda <= 1e-3)
 
         return {
             "fitness": round(fitness, 12),
