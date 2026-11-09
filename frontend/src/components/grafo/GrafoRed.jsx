@@ -1,4 +1,44 @@
-// Visualización del grafo dirigido de la red (vis-network).
-export default function GrafoRed(props) {
-  return <div>GrafoRed — pendiente</div>
+// Grafo dirigido G = (V, E) de la red con vis-network.
+// Sin asignación: muestra todos los arcos. Con asignación: solo los arcos con flujo > 0,
+// con grosor proporcional a las toneladas.
+import { useEffect, useRef } from 'react'
+import { Network } from 'vis-network/standalone'
+import { numero } from '../../utils/formato.js'
+
+export default function GrafoRed({ fuentes, plantas, asignacion, ficticio, alto = 460 }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!ref.current) return undefined
+    const sep = 60
+    const nodos = [
+      ...fuentes.map((f, i) => ({ id: `f:${f}`, label: f, x: -420, y: i * sep, color: '#a5d6a7', shape: 'box' })),
+      ...plantas.map((p, j) => ({ id: `p:${p}`, label: p, x: 420,
+        y: (j + 0.5) * (fuentes.length * sep) / plantas.length - sep / 2, color: '#ffcc80', shape: 'ellipse' })),
+    ]
+    const arcos = []
+    const maximo = asignacion ? Math.max(1, ...asignacion.flat()) : 1
+    fuentes.forEach((f, i) => plantas.forEach((p, j) => {
+      const x = asignacion?.[i]?.[j] ?? 0
+      if (asignacion && x <= 1e-6) return
+      arcos.push({ from: `f:${f}`, to: `p:${p}`, arrows: 'to',
+        width: asignacion ? 1 + 7 * (x / maximo) : 0.5,
+        label: asignacion ? `${numero(x, 1)} t` : undefined,
+        color: { color: asignacion ? '#2e7d32' : '#cfd8dc' }, font: { size: 11, align: 'middle' } })
+    }))
+    if (ficticio?.tipo === 'fuente') {
+      nodos.push({ id: `f:${ficticio.id}`, label: `${ficticio.id} (ficticia)`, x: -420, y: fuentes.length * sep,
+        color: '#eeeeee', shape: 'box', borderDashes: true })
+      ficticio.flujos.forEach((x, j) => x > 1e-6 && arcos.push({ from: `f:${ficticio.id}`, to: `p:${plantas[j]}`,
+        arrows: 'to', dashes: true, label: `${numero(x, 1)} t ociosas`, color: { color: '#9e9e9e' } }))
+    }
+    const red = new Network(ref.current, { nodes: nodos, edges: arcos }, {
+      physics: false, nodes: { font: { size: 16 }, margin: 8 }, interaction: { dragNodes: true, zoomView: true },
+      edges: { smooth: { type: 'curvedCW', roundness: 0.05 } },
+    })
+    red.fit()
+    return () => red.destroy()
+  }, [fuentes, plantas, asignacion, ficticio])
+
+  return <div ref={ref} className="grafo" style={{ height: alto }} />
 }

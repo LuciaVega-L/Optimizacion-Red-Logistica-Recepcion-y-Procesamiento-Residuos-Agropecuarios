@@ -93,6 +93,26 @@ Interfaz en http://localhost:5173
 cd backend
 pytest
 ```
+`tests/test_exacto.py` usa el caso base como prueba automática: Z* = 132 532 000 COP/sem,
+precios sombra y nodo ficticio E11 deben coincidir con las tablas del informe.
+
+> Usar `pulp==2.9.0` (fijado en `requirements.txt`): la API de PuLP 4.x cambió.
+
+## Endpoints principales
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/red/escenarios/{nombre}` | Red en formato dataConfig |
+| GET | `/api/red/escenarios/{nombre}/problema` | Red convertida (oferta, capacidad, costos) |
+| POST | `/api/red/problema` | Convierte una red editada en la interfaz |
+| POST | `/api/red/validar` | Errores de datos y estado de balance |
+| POST | `/api/exacto/resolver` | Modelo exacto: asignación, Z*, duales, costos reducidos, nodo ficticio, verificación ✔/✘ |
+| POST | `/api/genetico/resolver` | AG (responde 501 mientras `algoritmo.ejecutar` no exista) |
+| POST | `/api/sensibilidad/rangos` | Rangos de costos, oferta y capacidad sin cambiar la base óptima |
+| POST | `/api/sensibilidad/simular` | Escenarios con exacto (y AG opcional) |
+| POST | `/api/sensibilidad/escenarios-predefinidos` | Escenarios sugeridos (combustible, oferta, cuellos de botella) |
+| POST | `/api/comparativo/reporte` | Exacto vs. AG en la red actual |
+| POST | `/api/comparativo/escalabilidad` | Redes sintéticas de 10, 20, 50 y 100 fuentes |
 
 ## Flujo de trabajo en Git
 
