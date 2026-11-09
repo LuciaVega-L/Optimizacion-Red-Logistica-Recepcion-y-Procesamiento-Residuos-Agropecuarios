@@ -10,17 +10,28 @@ import json
 from pathlib import Path
 
 from app.schemas.red import ProblemaTransporte
+from app.core.config import settings
 
 DIR_ESCENARIOS = Path(__file__).resolve().parents[3] / "data" / "escenarios"
 ESCENARIO_BASE = "dataConfig"
 
 
 def listar_escenarios() -> list[str]:
+    if settings.usa_bd:
+        from app.services.red import repositorio_bd
+        return repositorio_bd.listar_escenarios()
     return sorted(p.stem for p in DIR_ESCENARIOS.glob("*.json"))
 
 
 def cargar_escenario(nombre: str = ESCENARIO_BASE) -> dict:
-    """Devuelve el JSON del escenario tal como está en disco."""
+    """Devuelve el escenario con el formato de dataConfig.json.
+
+    Con FUENTE_DATOS=bd lo lee de PostgreSQL (mismas claves);
+    si no, lo lee del archivo en disco.
+    """
+    if settings.usa_bd:
+        from app.services.red import repositorio_bd
+        return repositorio_bd.cargar_escenario(nombre)
     with open(DIR_ESCENARIOS / f"{nombre}.json", encoding="utf-8") as f:
         return json.load(f)
 
