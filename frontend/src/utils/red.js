@@ -1,6 +1,32 @@
 // Conversión de la red editable (formato dataConfig.json) al problema de transporte.
 // Misma fórmula que backend/app/services/red/repositorio.py:
 //   c_ij = distancia_ij * costo_transporte_km_ton + costo_operativo_j   [COP/ton]
+export function normalizarConfig(raw) {
+  if (!raw || typeof raw !== 'object') return null
+  if (raw.parametros_globales && Array.isArray(raw.agroempresas) && Array.isArray(raw.plantas)) return raw
+
+  const p = raw.parametros_entrada
+  if (!p || !p.fuentes || !p.plantas) return null
+
+  return {
+    id: raw.id,
+    nombre: raw.nombre,
+    descripcion: raw.descripcion,
+    parametros_globales: {
+      costo_transporte_km_ton: p.costo_transporte_km_ton ?? raw.costo_transporte_km_ton ?? 1200,
+    },
+    agroempresas: p.fuentes.map((id, i) => ({ id, nombre: id, oferta_ton_sem: p.oferta[i] })),
+    plantas: p.plantas.map((id, j) => ({
+      id, nombre: id,
+      capacidad_maxima_ton_sem: p.demanda[j],
+      costo_operativo_ton: p.costo_operativo[j],
+    })),
+    matriz_distancias_km: Object.fromEntries(
+      p.fuentes.map((f, i) => [f, Object.fromEntries(p.plantas.map((pl, j) => [pl, p.distancias_km[i][j]]))])
+    ),
+    rutas_deshabilitadas: p.rutas_deshabilitadas ?? [],
+  }
+}
 
 export function aProblema(config) {
   const ckm = Number(config.parametros_globales.costo_transporte_km_ton)

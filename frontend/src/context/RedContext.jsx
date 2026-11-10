@@ -2,13 +2,13 @@
 // La red se guarda en el navegador para no perder los cambios al recargar.
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { obtenerEscenario } from '../api/red.js'
-import { aProblema, balance, validarConfig } from '../utils/red.js'
+import { aProblema, balance, validarConfig, normalizarConfig } from '../utils/red.js'
 
 const RedContext = createContext(null)
 const CLAVE = 'ecoresiduos.red'
 
 function leerGuardado() {
-  try { return JSON.parse(localStorage.getItem(CLAVE)) } catch { return null }
+  try { return normalizarConfig(JSON.parse(localStorage.getItem(CLAVE))) } catch { return null }
 }
 
 export function RedProvider({ children }) {
@@ -18,10 +18,11 @@ export function RedProvider({ children }) {
   const [resultados, setResultados] = useState({ exacto: null, genetico: null, sensibilidad: null, escalabilidad: null })
 
   const cargarEscenario = async (nombre = 'dataConfig') => {
-    setCargando(true); setError(null)
     try {
-      setConfig(await obtenerEscenario(nombre))
-      setResultados({ exacto: null, genetico: null, sensibilidad: null, escalabilidad: null })
+    const cfg = normalizarConfig(await obtenerEscenario(nombre))
+    if (!cfg) throw new Error('El escenario recibido no tiene el formato esperado')
+    setConfig(cfg)
+    setResultados({ exacto: null, genetico: null, sensibilidad: null, escalabilidad: null })
     } catch (e) { setError(e.message) } finally { setCargando(false) }
   }
 

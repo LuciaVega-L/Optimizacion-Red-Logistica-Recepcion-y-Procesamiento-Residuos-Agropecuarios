@@ -1,5 +1,5 @@
 // Cliente HTTP base. Todas las llamadas al backend pasan por aquí.
-const BASE = import.meta.env.VITE_API_URL ?? '/api'
+const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 export async function peticion(ruta, { metodo = 'GET', cuerpo } = {}) {
   let resp

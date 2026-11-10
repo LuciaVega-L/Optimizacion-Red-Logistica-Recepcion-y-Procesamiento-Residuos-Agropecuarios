@@ -1,5 +1,5 @@
 import { peticion } from './cliente.js'
 
-export const listarEscenarios = () => peticion('/red/escenarios')
-export const obtenerEscenario = (nombre) => peticion(`/red/escenarios/${nombre}`)
-export const validarProblema = (problema) => peticion('/red/validar', { metodo: 'POST', cuerpo: problema })
+export const listarEscenarios = () => peticion('/escenarios')
+export const obtenerEscenario = (nombre) => peticion(`/escenarios/${nombre}`)
+export const validarProblema = (problema) => peticion('/validar', { metodo: 'POST', cuerpo: problema })
