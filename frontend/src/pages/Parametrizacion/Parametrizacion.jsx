@@ -80,7 +80,15 @@ export default function Parametrizacion() {
         </div>
         <div className="acciones">
           <select value={seleccion} onChange={(e) => setSeleccion(e.target.value)} aria-label="Escenario">
-            {(escenarios.length ? escenarios : ['dataConfig']).map((n) => <option key={n}>{n}</option>)}
+            {(escenarios.length ? escenarios : [{ id: 'dataConfig', nombre: 'dataConfig' }]).map((esc) => {
+              const nombre = typeof esc === 'string' ? esc : esc.nombre   // acepta ambos formatos
+              const clave = typeof esc === 'string' ? esc : esc.id
+              return (
+                <option key={clave} value={nombre}>
+                  {nombre}{esc.es_base ? ' (base)' : ''}
+                </option>
+              )
+            })}
           </select>
           <Boton variante="secundario" onClick={() => {
             if (window.confirm('Se reemplazarán los cambios actuales por el escenario seleccionado. ¿Continuar?')) cargarEscenario(seleccion)
