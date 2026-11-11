@@ -4,31 +4,40 @@ import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
 import { EsqueletoGrafica, EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
+import EstadoVacio from '../../components/comunes/EstadoVacio.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GrafoRed from '../../components/grafo/GrafoRed.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
+import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { descargarCSV } from '../../utils/exportar.js'
 import { moneda, numero, segundos } from '../../utils/formato.js'
 
 export default function Exacto() {
   const { problema, errores, resultados, guardarResultado } = useProblema()
   const { cargando, error, ejecutar } = usePeticion()
+  const { notificar } = useNotificaciones()
   const res = resultados.exacto
 
   const resolver = async () => {
     const r = await ejecutar(() => resolverExacto(problema))
-    if (r) guardarResultado('exacto', r)
+    if (r) {
+      guardarResultado('exacto', r)
+      notificar(`Solución óptima encontrada: ${moneda(r.costo_total)} por semana`)
+    }
   }
 
-  const exportar = () => descargarCSV('solucion_exacta',
-    ['Empresa', ...res.plantas.map((p) => `${p} (t/sem)`), 'Precio sombra u_i'],
-    [...res.fuentes.map((f, i) => [f, ...res.asignacion[i], res.precios_sombra_oferta[i]]),
-      ['Precio sombra v_j', ...res.precios_sombra_demanda, ''],
-      ['Holgura (t/sem)', ...res.holgura_plantas, ''],
-      ['Costo total (COP/sem)', res.costo_total]])
+  const exportar = () => {
+    descargarCSV('solucion_exacta',
+      ['Empresa', ...res.plantas.map((p) => `${p} (t/sem)`), 'Precio sombra u_i'],
+      [...res.fuentes.map((f, i) => [f, ...res.asignacion[i], res.precios_sombra_oferta[i]]),
+        ['Precio sombra v_j', ...res.precios_sombra_demanda, ''],
+        ['Holgura (t/sem)', ...res.holgura_plantas, ''],
+        ['Costo total (COP/sem)', res.costo_total]])
+    notificar('CSV de la solución descargado')
+  }
 
   return (
     <section>
@@ -51,7 +60,13 @@ export default function Exacto() {
           <EsqueletoGrafica />
         </Cargando>
       )}
-      <Aviso tipo="error" mensajes={error ? [error] : []} />
+      {error && !cargando && <Aviso tipo="error" titulo="No se pudo resolver el modelo" mensajes={[error]} onReintentar={resolver} />}
+      {problema && !res && !cargando && !error && (
+        <EstadoVacio titulo="Aún no hay solución" icono="jugar"
+          descripcion="Resuelve el modelo para ver la asignación óptima, los precios sombra y el grafo de flujos.">
+          <Boton onClick={resolver}>Resolver modelo exacto</Boton>
+        </EstadoVacio>
+      )}
 
       {res && !cargando && (
         <>

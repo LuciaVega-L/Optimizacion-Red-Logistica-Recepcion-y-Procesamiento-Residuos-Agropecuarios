@@ -10,6 +10,7 @@ import MatrizEditable from '../../components/matrices/MatrizEditable.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import VectorEditable from '../../components/matrices/VectorEditable.jsx'
 import { useRed } from '../../context/RedContext.jsx'
+import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { moneda, numero } from '../../utils/formato.js'
 import { siguienteId } from '../../utils/red.js'
 
@@ -32,8 +33,20 @@ export default function Parametrizacion() {
   const { config, cargando, error, errores, problema, balance, actualizarConfig, cargarEscenario } = useRed()
   const [escenarios, setEscenarios] = useState([])
   const [seleccion, setSeleccion] = useState('dataConfig')
+  const [errorLista, setErrorLista] = useState(false)
+  const [cargandoEscenario, setCargandoEscenario] = useState(false)
+  const { notificar } = useNotificaciones()
 
-  useEffect(() => { listarEscenarios().then(setEscenarios).catch(() => setEscenarios([])) }, [])
+  useEffect(() => {
+    listarEscenarios().then(setEscenarios).catch(() => { setEscenarios([]); setErrorLista(true) })
+  }, [])
+
+  const cargar = async () => {
+    if (!window.confirm('Se reemplazarán los cambios actuales por el escenario seleccionado. ¿Continuar?')) return
+    setCargandoEscenario(true)
+    if (await cargarEscenario(seleccion)) notificar(`Escenario «${seleccion}» cargado`)
+    setCargandoEscenario(false)
+  }
 
   if (cargando) {
     return (
@@ -44,7 +57,10 @@ export default function Parametrizacion() {
       </Cargando>
     )
   }
-  if (!config) return <Aviso tipo="error" titulo="No se pudo cargar la red" mensajes={[error ?? 'Sin datos']} />
+  if (!config) {
+    return <Aviso tipo="error" titulo="No se pudo cargar la red" mensajes={[error ?? 'El servidor no devolvió datos.']}
+      onReintentar={() => cargarEscenario()} />
+  }
 
   const cambiarEntidad = (lista) => (k, clave, valor) => actualizarConfig((c) => {
     const anterior = c[lista][k].id
@@ -99,9 +115,7 @@ export default function Parametrizacion() {
               )
             })}
           </select>
-          <Boton variante="secundario" onClick={() => {
-            if (window.confirm('Se reemplazarán los cambios actuales por el escenario seleccionado. ¿Continuar?')) cargarEscenario(seleccion)
-          }}>Cargar escenario</Boton>
+          <Boton variante="secundario" onClick={cargar} cargando={cargandoEscenario}>Cargar escenario</Boton>
         </div>
       </header>
 
@@ -113,6 +127,8 @@ export default function Parametrizacion() {
       </div>
 
       <Aviso tipo={balance.estado === 'balanceado' ? 'ok' : 'info'} titulo="Balance de la red">{balance.texto}</Aviso>
+      {error && <Aviso tipo="error" titulo="No se pudo cargar el escenario" mensajes={[error]} />}
+      {errorLista && <Aviso tipo="alerta" mensajes={['No se pudo obtener la lista de escenarios; solo está disponible el caso base.']} />}
       <Aviso tipo="error" titulo="Errores en los datos" mensajes={errores} />
 
       <Tarjeta titulo="Coeficientes globales">

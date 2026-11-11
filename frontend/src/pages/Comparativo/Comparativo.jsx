@@ -1,5 +1,6 @@
 // HU5 — Reporte comparativo exacto vs. AG (caso actual, sensibilidad y escalabilidad) + HU6 exportar.
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { compararTamanos } from '../../api/comparativo.js'
 import { resolverExacto } from '../../api/exacto.js'
 import { resolverGenetico } from '../../api/genetico.js'
@@ -7,12 +8,14 @@ import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
 import { EsqueletoGrafica, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
+import EstadoVacio from '../../components/comunes/EstadoVacio.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaComparativa from '../../components/graficas/GraficaComparativa.jsx'
 import { millones } from '../../components/graficas/registro.js'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
+import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { descargarCSV, exportarPDF } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 import { FormularioAG, PARAMETROS_AG_INICIALES } from '../Genetico/Genetico.jsx'
@@ -29,6 +32,7 @@ export default function Comparativo() {
   const actual = usePeticion()
   const escala = usePeticion()
   const [errorAg, setErrorAg] = useState(null)
+  const { notificar } = useNotificaciones()
   const { exacto, genetico, sensibilidad, escalabilidad } = resultados
 
   const compararActual = () => actual.ejecutar(async () => {
@@ -37,32 +41,42 @@ export default function Comparativo() {
     try {
       guardarResultado('genetico', { ...(await resolverGenetico(problema, parametros)), parametros })
     } catch (e) { setErrorAg(e.message) }
+    notificar('Comparación de la red actual lista')
     return true
   })
 
   const compararEscala = async () => {
     const lista = semillas.split(',').map((s) => Number(s.trim())).filter(Number.isFinite)
     const r = await escala.ejecutar(() => compararTamanos(tamanos, parametros, incluirAg, lista.length ? lista : [1]))
-    if (r) guardarResultado('escalabilidad', r)
+    if (r) {
+      guardarResultado('escalabilidad', r)
+      notificar(`Escalabilidad: ${r.length} redes resueltas`)
+    }
   }
 
   const gapActual = gap(genetico?.costo_total, exacto?.costo_total)
   const conAg = sensibilidad?.escenarios.filter((e) => !e.error) ?? []
   const sensConAg = conAg.some((e) => e.genetico)
 
-  const exportarResumen = () => descargarCSV('reporte_comparativo',
-    ['Métrica', 'Exacto', 'Algoritmo genético'],
-    [['Costo total (COP/sem)', exacto?.costo_total, genetico?.costo_total],
-      ['Tiempo (s)', exacto?.tiempo_s, genetico?.tiempo_s],
-      ['Factible', exacto?.factible ? 'Sí' : 'No', genetico ? (genetico.factible ? 'Sí' : 'No') : ''],
-      ['Gap (%)', 0, gapActual]])
+  const exportarResumen = () => {
+    descargarCSV('reporte_comparativo',
+      ['Métrica', 'Exacto', 'Algoritmo genético'],
+      [['Costo total (COP/sem)', exacto?.costo_total, genetico?.costo_total],
+        ['Tiempo (s)', exacto?.tiempo_s, genetico?.tiempo_s],
+        ['Factible', exacto?.factible ? 'Sí' : 'No', genetico ? (genetico.factible ? 'Sí' : 'No') : ''],
+        ['Gap (%)', 0, gapActual]])
+    notificar('CSV del comparativo descargado')
+  }
 
-  const exportarEscala = () => descargarCSV('escalabilidad',
-    ['Fuentes', 'Plantas', 'Variables', 'Z exacto', 'Tiempo exacto (s)', 'Z AG mejor', 'Z AG promedio',
-      'Tiempo AG prom. (s)', 'Gap mejor (%)', 'Gap promedio (%)', 'Corridas factibles'],
-    escalabilidad.map((f) => [f.n_fuentes, f.n_plantas, f.variables, f.costo_exacto, f.tiempo_exacto_s,
-      f.costo_ag_mejor, f.costo_ag_promedio, f.tiempo_ag_promedio_s, f.gap_mejor_pct, f.gap_promedio_pct,
-      f.corridas ? `${f.corridas_factibles}/${f.corridas}` : '']))
+  const exportarEscala = () => {
+    descargarCSV('escalabilidad',
+      ['Fuentes', 'Plantas', 'Variables', 'Z exacto', 'Tiempo exacto (s)', 'Z AG mejor', 'Z AG promedio',
+        'Tiempo AG prom. (s)', 'Gap mejor (%)', 'Gap promedio (%)', 'Corridas factibles'],
+      escalabilidad.map((f) => [f.n_fuentes, f.n_plantas, f.variables, f.costo_exacto, f.tiempo_exacto_s,
+        f.costo_ag_mejor, f.costo_ag_promedio, f.tiempo_ag_promedio_s, f.gap_mejor_pct, f.gap_promedio_pct,
+        f.corridas ? `${f.corridas_factibles}/${f.corridas}` : '']))
+    notificar('CSV de escalabilidad descargado')
+  }
 
   return (
     <section>
@@ -93,8 +107,14 @@ export default function Comparativo() {
             <div className="columnas"><EsqueletoGrafica alto={220} titulo={false} /><EsqueletoGrafica alto={220} titulo={false} /></div>
           </Cargando>
         )}
-        <Aviso tipo="error" mensajes={actual.error ? [actual.error] : []} />
-        <Aviso tipo="alerta" mensajes={errorAg ? [`AG: ${errorAg}`] : []} />
+        {actual.error && !actual.cargando && (
+          <Aviso tipo="error" titulo="No se pudo resolver la red" mensajes={[actual.error]} onReintentar={compararActual} />
+        )}
+        {errorAg && !actual.cargando && <Aviso tipo="alerta" titulo="El AG no terminó; se muestra solo el exacto" mensajes={[errorAg]} />}
+        {problema && !exacto && !actual.cargando && !actual.error && (
+          <EstadoVacio compacto titulo="Sin comparación todavía"
+            descripcion="Resuelve la red con ambos métodos para ver costo, tiempo y gap." />
+        )}
         {exacto && !actual.cargando && (
           <>
             <div className="tabla-contenedor">
@@ -119,8 +139,12 @@ export default function Comparativo() {
       </Tarjeta>
 
       <Tarjeta titulo="2. Comportamiento ante el análisis de sensibilidad">
-        {!sensibilidad && <p className="texto-suave">Ejecuta los escenarios en la página Sensibilidad (marcando “Resolver también con el AG”).</p>}
-        {sensibilidad && !sensConAg && <p className="texto-suave">Los escenarios se simularon sin el AG. Vuelve a simular con el AG activado para comparar.</p>}
+        {!sensConAg && (
+          <EstadoVacio compacto titulo={sensibilidad ? 'Los escenarios se simularon sin el AG' : 'Sin escenarios simulados'}
+            descripcion="Simula los escenarios con la opción «Resolver también con el AG» activada.">
+            <Link to="/sensibilidad" className="boton boton--secundario">Ir a Sensibilidad</Link>
+          </EstadoVacio>
+        )}
         {sensConAg && (
           <>
             <GraficaComparativa etiquetas={conAg.map((e) => e.nombre)} exacto={conAg.map((e) => e.costo_total)}
@@ -166,7 +190,13 @@ export default function Comparativo() {
             <EsqueletoGrafica alto={220} titulo={false} />
           </Cargando>
         )}
-        <Aviso tipo="error" mensajes={escala.error ? [escala.error] : []} />
+        {escala.error && !escala.cargando && (
+          <Aviso tipo="error" titulo="No se pudo medir la escalabilidad" mensajes={[escala.error]} onReintentar={compararEscala} />
+        )}
+        {!escalabilidad && !escala.cargando && !escala.error && (
+          <EstadoVacio compacto titulo={tamanos.length ? 'Sin resultados de escalabilidad' : 'Agrega al menos un tamaño de red'}
+            descripcion="Ejecuta para comparar tiempos y gap en redes sintéticas de distintos tamaños." />
+        )}
         {escalabilidad && !escala.cargando && (
           <>
             {escalabilidad.some((f) => f.error_ag) && <Aviso tipo="alerta">{escalabilidad.find((f) => f.error_ag).error_ag}</Aviso>}

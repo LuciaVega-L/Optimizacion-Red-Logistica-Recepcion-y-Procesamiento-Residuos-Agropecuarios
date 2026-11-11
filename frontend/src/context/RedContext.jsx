@@ -17,13 +17,17 @@ export function RedProvider({ children }) {
   const [error, setError] = useState(null)
   const [resultados, setResultados] = useState({ exacto: null, genetico: null, sensibilidad: null, escalabilidad: null })
 
+  // Devuelve true si el escenario se cargó; si falla, deja el mensaje en `error`.
   const cargarEscenario = async (nombre = 'dataConfig') => {
+    setError(null)
+    if (!config) setCargando(true)
     try {
-    const cfg = normalizarConfig(await obtenerEscenario(nombre))
-    if (!cfg) throw new Error('El escenario recibido no tiene el formato esperado')
-    setConfig(cfg)
-    setResultados({ exacto: null, genetico: null, sensibilidad: null, escalabilidad: null })
-    } catch (e) { setError(e.message) } finally { setCargando(false) }
+      const cfg = normalizarConfig(await obtenerEscenario(nombre))
+      if (!cfg) throw new Error('El escenario recibido no tiene el formato esperado')
+      setConfig(cfg)
+      setResultados({ exacto: null, genetico: null, sensibilidad: null, escalabilidad: null })
+      return true
+    } catch (e) { setError(e.message); return false } finally { setCargando(false) }
   }
 
   useEffect(() => { if (!config) cargarEscenario() }, [])  // eslint-disable-line react-hooks/exhaustive-deps

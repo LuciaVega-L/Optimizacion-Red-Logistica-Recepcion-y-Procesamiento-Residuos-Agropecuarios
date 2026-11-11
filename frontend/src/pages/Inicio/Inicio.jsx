@@ -17,7 +17,7 @@ const MODULOS = [
 ]
 
 export default function Inicio() {
-  const { config, cargando, error, balance, problema, resultados } = useRed()
+  const { config, cargando, error, balance, problema, resultados, cargarEscenario } = useRed()
   if (cargando) {
     return (
       <Cargando texto="Cargando la red…">
@@ -32,7 +32,7 @@ export default function Inicio() {
     <section>
       <h1>EcoResiduos del Llano — Optimización de la red logística</h1>
       <p className="texto-suave">Recepción y procesamiento de residuos agropecuarios en el Meta: modelo de transporte exacto vs. algoritmo genético.</p>
-      <Aviso tipo="error" mensajes={error ? [error] : []} />
+      {error && <Aviso tipo="error" titulo="No se pudo cargar la red" mensajes={[error]} onReintentar={() => cargarEscenario()} />}
 
       {config && (
         <div className="kpis">

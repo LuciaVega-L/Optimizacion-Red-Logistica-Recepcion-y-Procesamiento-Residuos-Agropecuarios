@@ -5,11 +5,13 @@ import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
 import { EsqueletoGrafica, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
+import EstadoVacio from '../../components/comunes/EstadoVacio.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaSensibilidad from '../../components/graficas/GraficaSensibilidad.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
+import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { descargarCSV } from '../../utils/exportar.js'
 import { limite, moneda, numero, porcentaje } from '../../utils/formato.js'
 import { FormularioAG, PARAMETROS_AG_INICIALES } from '../Genetico/Genetico.jsx'
@@ -58,6 +60,7 @@ export default function Sensibilidad() {
   const [parametrosAg, setParametrosAg] = useState(PARAMETROS_AG_INICIALES)
   const [soloBasicas, setSoloBasicas] = useState(true)
   const { cargando, error, ejecutar } = usePeticion()
+  const { notificar } = useNotificaciones()
   const res = resultados.sensibilidad
 
   useEffect(() => {
@@ -70,19 +73,26 @@ export default function Sensibilidad() {
     const nombre = nuevo.nombre.trim() || `Escenario ${escenarios.length + 1}`
     setEscenarios([...escenarios, aEscenario({ ...nuevo, nombre })])
     setNuevo(NUEVO)
+    notificar(`Escenario «${nombre}» agregado`)
   }
 
   const simular = async () => {
     const r = await ejecutar(() => simularEscenarios(problema, escenarios, incluirAg, parametrosAg))
-    if (r) guardarResultado('sensibilidad', r)
+    if (r) {
+      guardarResultado('sensibilidad', r)
+      notificar(`${r.escenarios.length} escenarios simulados`)
+    }
   }
 
-  const exportar = () => descargarCSV('sensibilidad_escenarios',
-    ['Escenario', 'Cambios', 'Z* exacto (COP/sem)', 'Variación (COP)', 'Variación (%)', '¿Misma base?',
-      'Z AG (COP/sem)', 'Gap AG (%)', 'Error'],
-    res.escenarios.map((e) => [e.nombre ?? e.escenario.nombre, describir(e.escenario), e.costo_total,
-      e.variacion_costo, e.variacion_costo_pct, e.base_optima_se_mantiene ? 'Sí' : 'No',
-      e.genetico?.costo_total, e.gap_pct, e.error ?? e.error_ag]))
+  const exportar = () => {
+    descargarCSV('sensibilidad_escenarios',
+      ['Escenario', 'Cambios', 'Z* exacto (COP/sem)', 'Variación (COP)', 'Variación (%)', '¿Misma base?',
+        'Z AG (COP/sem)', 'Gap AG (%)', 'Error'],
+      res.escenarios.map((e) => [e.nombre ?? e.escenario.nombre, describir(e.escenario), e.costo_total,
+        e.variacion_costo, e.variacion_costo_pct, e.base_optima_se_mantiene ? 'Sí' : 'No',
+        e.genetico?.costo_total, e.gap_pct, e.error ?? e.error_ag]))
+    notificar('CSV de escenarios descargado')
+  }
 
   const objetivos = nuevo.tipo === 'oferta' ? problema.fuentes : nuevo.tipo === 'capacidad' ? problema.plantas : []
 
@@ -100,18 +110,23 @@ export default function Sensibilidad() {
       </header>
 
       <Tarjeta titulo="Escenarios a simular">
-        <div className="tabla-contenedor">
-          <table className="tabla tabla--compacta">
-            <thead><tr><th>Nombre</th><th>Cambios</th><th /></tr></thead>
-            <tbody>
-              {escenarios.map((e, k) => (
-                <tr key={k}><td>{e.nombre}</td><td>{describir(e)}</td>
-                  <td><button className="boton boton--peligro boton--mini" title="Quitar"
-                    onClick={() => setEscenarios(escenarios.filter((_, i) => i !== k))}>✕</button></td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {!escenarios.length ? (
+          <EstadoVacio compacto titulo="No hay escenarios"
+            descripcion="Agrega al menos uno con el formulario de abajo para poder simular." />
+        ) : (
+          <div className="tabla-contenedor">
+            <table className="tabla tabla--compacta">
+              <thead><tr><th>Nombre</th><th>Cambios</th><th /></tr></thead>
+              <tbody>
+                {escenarios.map((e, k) => (
+                  <tr key={k}><td>{e.nombre}</td><td>{describir(e)}</td>
+                    <td><button className="boton boton--peligro boton--mini" title="Quitar"
+                      onClick={() => setEscenarios(escenarios.filter((_, i) => i !== k))}>✕</button></td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         <div className="formulario formulario--linea">
           <label className="campo">Nombre
             <input value={nuevo.nombre} placeholder="p. ej. Paro camionero"
@@ -147,7 +162,13 @@ export default function Sensibilidad() {
           <div className="columnas"><EsqueletoTabla columnas={5} /><EsqueletoTabla columnas={5} /></div>
         </Cargando>
       )}
-      <Aviso tipo="error" mensajes={error ? [error] : []} />
+      {error && !cargando && <Aviso tipo="error" titulo="No se pudieron simular los escenarios" mensajes={[error]} onReintentar={simular} />}
+      {!res && !cargando && !error && escenarios.length > 0 && (
+        <EstadoVacio titulo="Sin resultados todavía" icono="jugar"
+          descripcion="Simula los escenarios para ver la variación de Z* y los rangos de la base óptima.">
+          <Boton onClick={simular}>Simular escenarios</Boton>
+        </EstadoVacio>
+      )}
 
       {res && !cargando && (
         <>

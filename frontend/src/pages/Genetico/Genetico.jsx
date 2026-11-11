@@ -5,12 +5,14 @@ import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
 import { EsqueletoGrafica, EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
+import EstadoVacio from '../../components/comunes/EstadoVacio.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaConvergencia from '../../components/graficas/GraficaConvergencia.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
+import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { descargarCSV } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 
@@ -51,13 +53,22 @@ export default function Genetico() {
   const { problema, errores, resultados, guardarResultado } = useProblema()
   const [parametros, setParametros] = useState(PARAMETROS_AG_INICIALES)
   const { cargando, error, ejecutar } = usePeticion()
+  const { notificar } = useNotificaciones()
   const res = resultados.genetico
   const optimo = resultados.exacto?.costo_total
   const gap = res && optimo ? ((res.costo_total - optimo) / optimo) * 100 : null
 
   const correr = async () => {
     const r = await ejecutar(() => resolverGenetico(problema, parametros))
-    if (r) guardarResultado('genetico', { ...r, parametros })
+    if (r) {
+      guardarResultado('genetico', { ...r, parametros })
+      notificar(`AG terminado: mejor costo ${moneda(r.costo_total)}`)
+    }
+  }
+
+  const exportar = () => {
+    descargarCSV('solucion_ag', ['Empresa', ...problema.plantas], problema.fuentes.map((f, i) => [f, ...res.asignacion[i]]))
+    notificar('CSV del AG descargado')
   }
 
   return (
@@ -69,8 +80,7 @@ export default function Genetico() {
         </div>
         <div className="acciones">
           <Boton onClick={correr} disabled={!problema || cargando}>Ejecutar AG</Boton>
-          {res && <Boton variante="secundario" onClick={() => descargarCSV('solucion_ag',
-            ['Empresa', ...problema.plantas], problema.fuentes.map((f, i) => [f, ...res.asignacion[i]]))}>Exportar CSV</Boton>}
+          {res && <Boton variante="secundario" onClick={exportar}>Exportar CSV</Boton>}
         </div>
       </header>
 
@@ -85,7 +95,11 @@ export default function Genetico() {
           <EsqueletoTabla columnas={5} />
         </Cargando>
       )}
-      <Aviso tipo="error" mensajes={error ? [error] : []} />
+      {error && !cargando && <Aviso tipo="error" titulo="El algoritmo genético falló" mensajes={[error]} onReintentar={correr} />}
+      {problema && !res && !cargando && !error && (
+        <EstadoVacio titulo="Aún no hay ejecución" icono="jugar"
+          descripcion="Ajusta los parámetros y ejecuta el AG para ver la convergencia y la mejor asignación." />
+      )}
 
       {res && !cargando && (
         <>
@@ -93,7 +107,8 @@ export default function Genetico() {
             <Tarjeta titulo="Mejor costo encontrado" valor={moneda(res.costo_total)} detalle="COP por semana" />
             <Tarjeta titulo="Tiempo de ejecución" valor={segundos(res.tiempo_s)} />
             <Tarjeta titulo="Factible" valor={res.factible ? '✔ Sí' : '✘ No'} />
-            <Tarjeta titulo="Gap vs. exacto" valor={gap === null ? 'Resuelve el exacto' : porcentaje(gap)} />
+            <Tarjeta titulo="Gap vs. exacto" valor={gap === null ? '—' : porcentaje(gap)}
+              detalle={gap === null ? 'Resuelve primero el modelo exacto' : undefined} />
           </div>
           <Tarjeta titulo="Convergencia">
             <GraficaConvergencia historial={res.historial_fitness} optimo={null} etiqueta="Fitness del mejor individuo" />
