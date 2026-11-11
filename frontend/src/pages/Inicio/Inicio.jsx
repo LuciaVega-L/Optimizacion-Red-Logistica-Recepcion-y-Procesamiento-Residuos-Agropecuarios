@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
+import { EsqueletoGrafica, EsqueletoKpis, EsqueletoTarjetas } from '../../components/comunes/Esqueleto.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GrafoRed from '../../components/grafo/GrafoRed.jsx'
 import { useRed } from '../../context/RedContext.jsx'
@@ -17,7 +18,15 @@ const MODULOS = [
 
 export default function Inicio() {
   const { config, cargando, error, balance, problema, resultados } = useRed()
-  if (cargando) return <Cargando texto="Cargando la red…" />
+  if (cargando) {
+    return (
+      <Cargando texto="Cargando la red…">
+        <EsqueletoKpis />
+        <EsqueletoTarjetas />
+        <EsqueletoGrafica alto={360} />
+      </Cargando>
+    )
+  }
 
   return (
     <section>

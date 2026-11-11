@@ -4,6 +4,7 @@ import { resolverGenetico } from '../../api/genetico.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
+import { EsqueletoGrafica, EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaConvergencia from '../../components/graficas/GraficaConvergencia.jsx'
@@ -77,10 +78,16 @@ export default function Genetico() {
       <Tarjeta titulo="Parámetros del algoritmo">
         <FormularioAG valores={parametros} onCambio={setParametros} />
       </Tarjeta>
-      {cargando && <Cargando texto="Evolucionando la población…" />}
+      {cargando && (
+        <Cargando texto="Evolucionando la población…">
+          <EsqueletoKpis />
+          <EsqueletoGrafica />
+          <EsqueletoTabla columnas={5} />
+        </Cargando>
+      )}
       <Aviso tipo="error" mensajes={error ? [error] : []} />
 
-      {res && (
+      {res && !cargando && (
         <>
           <div className="kpis">
             <Tarjeta titulo="Mejor costo encontrado" valor={moneda(res.costo_total)} detalle="COP por semana" />

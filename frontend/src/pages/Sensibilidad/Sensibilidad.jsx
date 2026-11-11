@@ -4,6 +4,7 @@ import { escenariosPredefinidos, simularEscenarios } from '../../api/sensibilida
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
+import { EsqueletoGrafica, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaSensibilidad from '../../components/graficas/GraficaSensibilidad.jsx'
@@ -140,10 +141,15 @@ export default function Sensibilidad() {
         {incluirAg && <FormularioAG valores={parametrosAg} onCambio={setParametrosAg} />}
       </Tarjeta>
 
-      {cargando && <Cargando texto="Simulando escenarios…" />}
+      {cargando && (
+        <Cargando texto="Simulando escenarios…">
+          <EsqueletoGrafica alto={220} />
+          <div className="columnas"><EsqueletoTabla columnas={5} /><EsqueletoTabla columnas={5} /></div>
+        </Cargando>
+      )}
       <Aviso tipo="error" mensajes={error ? [error] : []} />
 
-      {res && (
+      {res && !cargando && (
         <>
           <Tarjeta titulo={`Resultados (caso base: ${moneda(res.base.costo_total)} / semana)`}>
             <GraficaSensibilidad escenarios={res.escenarios} />

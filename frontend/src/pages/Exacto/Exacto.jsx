@@ -3,6 +3,7 @@ import { resolverExacto } from '../../api/exacto.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
+import { EsqueletoGrafica, EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GrafoRed from '../../components/grafo/GrafoRed.jsx'
@@ -43,10 +44,16 @@ export default function Exacto() {
       </header>
 
       {!problema && <SinDatos errores={errores} />}
-      {cargando && <Cargando />}
+      {cargando && (
+        <Cargando texto="Resolviendo el modelo exacto…">
+          <EsqueletoKpis />
+          <div className="columnas"><EsqueletoTabla columnas={5} /><EsqueletoTabla columnas={5} /></div>
+          <EsqueletoGrafica />
+        </Cargando>
+      )}
       <Aviso tipo="error" mensajes={error ? [error] : []} />
 
-      {res && (
+      {res && !cargando && (
         <>
           <div className="kpis">
             <Tarjeta titulo="Costo total Z*" valor={moneda(res.costo_total)} detalle="COP por semana" />

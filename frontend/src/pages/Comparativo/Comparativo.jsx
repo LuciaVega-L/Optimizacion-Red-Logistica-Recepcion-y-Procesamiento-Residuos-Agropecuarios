@@ -6,6 +6,7 @@ import { resolverGenetico } from '../../api/genetico.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
+import { EsqueletoGrafica, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaComparativa from '../../components/graficas/GraficaComparativa.jsx'
@@ -86,10 +87,15 @@ export default function Comparativo() {
           <Boton onClick={compararActual} disabled={!problema || actual.cargando}>Resolver con ambos métodos</Boton>
           {exacto && <Boton variante="secundario" onClick={exportarResumen}>Exportar CSV</Boton>}
         </div>
-        {actual.cargando && <Cargando />}
+        {actual.cargando && (
+          <Cargando texto="Resolviendo con ambos métodos…">
+            <EsqueletoTabla filas={4} columnas={3} titulo={false} />
+            <div className="columnas"><EsqueletoGrafica alto={220} titulo={false} /><EsqueletoGrafica alto={220} titulo={false} /></div>
+          </Cargando>
+        )}
         <Aviso tipo="error" mensajes={actual.error ? [actual.error] : []} />
         <Aviso tipo="alerta" mensajes={errorAg ? [`AG: ${errorAg}`] : []} />
-        {exacto && (
+        {exacto && !actual.cargando && (
           <>
             <div className="tabla-contenedor">
               <table className="tabla tabla--numeros">
@@ -154,9 +160,14 @@ export default function Comparativo() {
           <Boton onClick={compararEscala} disabled={escala.cargando || !tamanos.length}>Ejecutar</Boton>
           {escalabilidad && <Boton variante="secundario" onClick={exportarEscala}>Exportar CSV</Boton>}
         </div>
-        {escala.cargando && <Cargando texto="Resolviendo redes de distintos tamaños…" />}
+        {escala.cargando && (
+          <Cargando texto="Resolviendo redes de distintos tamaños…">
+            <EsqueletoTabla filas={4} columnas={9} titulo={false} />
+            <EsqueletoGrafica alto={220} titulo={false} />
+          </Cargando>
+        )}
         <Aviso tipo="error" mensajes={escala.error ? [escala.error] : []} />
-        {escalabilidad && (
+        {escalabilidad && !escala.cargando && (
           <>
             {escalabilidad.some((f) => f.error_ag) && <Aviso tipo="alerta">{escalabilidad.find((f) => f.error_ag).error_ag}</Aviso>}
             <div className="tabla-contenedor">

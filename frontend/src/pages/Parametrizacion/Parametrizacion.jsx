@@ -4,6 +4,7 @@ import { listarEscenarios } from '../../api/red.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
+import { EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import MatrizEditable from '../../components/matrices/MatrizEditable.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
@@ -34,7 +35,15 @@ export default function Parametrizacion() {
 
   useEffect(() => { listarEscenarios().then(setEscenarios).catch(() => setEscenarios([])) }, [])
 
-  if (cargando) return <Cargando texto="Cargando la red…" />
+  if (cargando) {
+    return (
+      <Cargando texto="Cargando la red…">
+        <EsqueletoKpis />
+        <EsqueletoTabla filas={5} columnas={6} />
+        <EsqueletoTabla filas={4} columnas={6} />
+      </Cargando>
+    )
+  }
   if (!config) return <Aviso tipo="error" titulo="No se pudo cargar la red" mensajes={[error ?? 'Sin datos']} />
 
   const cambiarEntidad = (lista) => (k, clave, valor) => actualizarConfig((c) => {
