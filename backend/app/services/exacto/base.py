@@ -1,4 +1,4 @@
-"""Base óptima del problema de transporte como árbol generador.
+"""Base optima del problema de transporte como árbol generador.
 
 En un problema de transporte balanceado de n' fuentes y m' plantas, una solución básica
 tiene n' + m' - 1 variables básicas que forman un árbol entre filas ("r", i) y columnas ("c", j).
@@ -32,8 +32,8 @@ class UnionFind:
 
 
 def construir_base(X, costos, u0=None, v0=None, tol: float = TOL) -> list[tuple[int, int]]:
-    """Celdas básicas: las de flujo positivo y, si la solución es degenerada, se completan
-    con celdas de costo reducido ~0 (según los duales del solver u0, v0) sin formar ciclos."""
+    """Celdas basicas: las de flujo positivo y, si la solución es degenerada, se completan
+    con celdas de costo reducido sin formar ciclos."""
     n, m = len(X), len(X[0])
     uf = UnionFind([("r", i) for i in range(n)] + [("c", j) for j in range(m)])
     base = []
