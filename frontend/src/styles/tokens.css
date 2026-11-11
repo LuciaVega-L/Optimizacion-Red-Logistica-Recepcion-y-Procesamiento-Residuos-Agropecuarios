@@ -1,0 +1,113 @@
+/* Tokens de diseño de EcoResiduos.
+   Toda la app usa estas variables: no escribir colores, tamaños ni sombras sueltos en los componentes. */
+:root {
+  /* ---- Color: escala azul (primario) ---- */
+  --azul-50: #eff6ff;
+  --azul-100: #dbeafe;
+  --azul-200: #bfdbfe;
+  --azul-300: #93c5fd;
+  --azul-400: #60a5fa;
+  --azul-500: #3b82f6;
+  --azul-600: #2563eb;
+  --azul-700: #1d4ed8;
+  --azul-800: #1e40af;
+  --azul-900: #1e3a8a;
+  --azul-950: #172554;
+
+  /* ---- Color: neutros con matiz azul ---- */
+  --gris-0: #ffffff;
+  --gris-25: #f8fafc;
+  --gris-50: #f1f5f9;
+  --gris-100: #e2e8f0;
+  --gris-200: #cbd5e1;
+  --gris-400: #94a3b8;
+  --gris-500: #64748b;
+  --gris-600: #475569;
+  --gris-700: #334155;
+  --gris-900: #0f172a;
+
+  /* ---- Color: roles semánticos ---- */
+  --color-primario: var(--azul-700);
+  --color-primario-hover: var(--azul-800);
+  --color-primario-activo: var(--azul-900);
+  --color-primario-suave: var(--azul-50);
+  --color-primario-borde: var(--azul-200);
+  --color-sobre-primario: var(--gris-0);
+
+  --color-fondo: var(--gris-25);
+  --color-superficie: var(--gris-0);
+  --color-superficie-alt: var(--gris-50);
+  --color-borde: var(--gris-100);
+  --color-borde-fuerte: var(--gris-200);
+  --color-texto: var(--gris-900);
+  --color-texto-suave: var(--gris-600);
+  --color-texto-tenue: var(--gris-500);
+  --color-deshabilitado: var(--gris-100);
+  --color-texto-deshabilitado: var(--gris-400);
+
+  --color-exito: #15803d;
+  --color-exito-suave: #f0fdf4;
+  --color-exito-borde: #bbf7d0;
+  --color-alerta: #b45309;
+  --color-alerta-suave: #fffbeb;
+  --color-alerta-borde: #fde68a;
+  --color-error: #b91c1c;
+  --color-error-suave: #fef2f2;
+  --color-error-borde: #fecaca;
+  --color-info: var(--azul-700);
+  --color-info-suave: var(--azul-50);
+  --color-info-borde: var(--azul-200);
+
+  /* ---- Tipografía ---- */
+  --fuente-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fuente-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --texto-xs: 0.75rem;    /* 12px */
+  --texto-sm: 0.875rem;   /* 14px */
+  --texto-md: 1rem;       /* 16px */
+  --texto-lg: 1.125rem;   /* 18px */
+  --texto-xl: 1.25rem;    /* 20px */
+  --texto-2xl: 1.5rem;    /* 24px */
+  --texto-3xl: 1.875rem;  /* 30px */
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-semi: 600;
+  --peso-negrita: 700;
+  --interlineado-ajustado: 1.25;
+  --interlineado-base: 1.5;
+
+  /* ---- Espaciado (escala de 4px) ---- */
+  --esp-1: 0.25rem;
+  --esp-2: 0.5rem;
+  --esp-3: 0.75rem;
+  --esp-4: 1rem;
+  --esp-5: 1.25rem;
+  --esp-6: 1.5rem;
+  --esp-8: 2rem;
+  --esp-10: 2.5rem;
+  --esp-12: 3rem;
+
+  /* ---- Bordes ---- */
+  --borde-ancho: 1px;
+  --radio-sm: 4px;
+  --radio-md: 8px;
+  --radio-lg: 12px;
+  --radio-total: 999px;
+
+  /* ---- Sombras ---- */
+  --sombra-xs: 0 1px 2px rgb(15 23 42 / 0.06);
+  --sombra-sm: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.04);
+  --sombra-md: 0 4px 12px rgb(15 23 42 / 0.08), 0 2px 4px rgb(15 23 42 / 0.04);
+  --sombra-lg: 0 12px 32px rgb(15 23 42 / 0.14);
+  --anillo-foco: 0 0 0 3px var(--azul-300);
+
+  /* ---- Movimiento ---- */
+  --duracion-rapida: 120ms;
+  --duracion-media: 200ms;
+  --curva: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ---- Capas y medidas ---- */
+  --z-menu: 30;
+  --z-aviso: 50;
+  --ancho-nav: 232px;
+  --ancho-contenido: 1280px;
+}

@@ -12,9 +12,9 @@ export default function GrafoRed({ fuentes, plantas, asignacion, ficticio, alto 
     if (!ref.current) return undefined
     const sep = 60
     const nodos = [
-      ...fuentes.map((f, i) => ({ id: `f:${f}`, label: f, x: -420, y: i * sep, color: '#a5d6a7', shape: 'box' })),
+      ...fuentes.map((f, i) => ({ id: `f:${f}`, label: f, x: -420, y: i * sep, color: { background: '#dbeafe', border: '#2563eb' }, shape: 'box' })),
       ...plantas.map((p, j) => ({ id: `p:${p}`, label: p, x: 420,
-        y: (j + 0.5) * (fuentes.length * sep) / plantas.length - sep / 2, color: '#ffcc80', shape: 'ellipse' })),
+        y: (j + 0.5) * (fuentes.length * sep) / plantas.length - sep / 2, color: { background: '#1d4ed8', border: '#1e3a8a' }, font: { color: '#ffffff' }, shape: 'ellipse' })),
     ]
     const arcos = []
     const maximo = asignacion ? Math.max(1, ...asignacion.flat()) : 1
@@ -24,16 +24,16 @@ export default function GrafoRed({ fuentes, plantas, asignacion, ficticio, alto 
       arcos.push({ from: `f:${f}`, to: `p:${p}`, arrows: 'to',
         width: asignacion ? 1 + 7 * (x / maximo) : 0.5,
         label: asignacion ? `${numero(x, 1)} t` : undefined,
-        color: { color: asignacion ? '#2e7d32' : '#cfd8dc' }, font: { size: 11, align: 'middle' } })
+        color: { color: asignacion ? '#1d4ed8' : '#cbd5e1' }, font: { size: 11, align: 'middle' } })
     }))
     if (ficticio?.tipo === 'fuente') {
       nodos.push({ id: `f:${ficticio.id}`, label: `${ficticio.id} (ficticia)`, x: -420, y: fuentes.length * sep,
-        color: '#eeeeee', shape: 'box', borderDashes: true })
+        color: { background: '#f1f5f9', border: '#94a3b8' }, shape: 'box', shapeProperties: { borderDashes: true } })
       ficticio.flujos.forEach((x, j) => x > 1e-6 && arcos.push({ from: `f:${ficticio.id}`, to: `p:${plantas[j]}`,
-        arrows: 'to', dashes: true, label: `${numero(x, 1)} t ociosas`, color: { color: '#9e9e9e' } }))
+        arrows: 'to', dashes: true, label: `${numero(x, 1)} t ociosas`, color: { color: '#94a3b8' } }))
     }
     const red = new Network(ref.current, { nodes: nodos, edges: arcos }, {
-      physics: false, nodes: { font: { size: 16 }, margin: 8 }, interaction: { dragNodes: true, zoomView: true },
+      physics: false, nodes: { font: { size: 15, face: 'Inter, system-ui, sans-serif' }, margin: 8, borderWidth: 1.5 }, interaction: { dragNodes: true, zoomView: true },
       edges: { smooth: { type: 'curvedCW', roundness: 0.05 } },
     })
     red.fit()

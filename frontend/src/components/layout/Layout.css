@@ -1,6 +1,13 @@
 .layout { display: flex; min-height: 100vh; }
-.layout__nav { width: 220px; padding: 1rem; display: flex; flex-direction: column; gap: .5rem; background: var(--color-panel); }
-.layout__nav a { color: inherit; text-decoration: none; padding: .4rem .6rem; border-radius: 6px; }
-.layout__nav a.active { background: var(--color-primario); color: #fff; }
-.layout__marca { margin-bottom: 1rem; }
-.layout__contenido { flex: 1; padding: 1.5rem; }
+.layout__nav {
+  width: var(--ancho-nav); flex-shrink: 0; padding: var(--esp-5) var(--esp-3);
+  display: flex; flex-direction: column; gap: var(--esp-1);
+  background: var(--azul-950); color: var(--azul-100);
+}
+.layout__nav a {
+  color: var(--azul-100); text-decoration: none; font-size: var(--texto-sm); font-weight: var(--peso-medio);
+  padding: var(--esp-2) var(--esp-3); border-radius: var(--radio-md);
+}
+.layout__nav a.active { background: var(--azul-700); color: var(--gris-0); }
+.layout__marca { margin: 0 var(--esp-3) var(--esp-6); font-size: var(--texto-lg); font-weight: var(--peso-negrita); color: var(--gris-0); }
+.layout__contenido { flex: 1; min-width: 0; padding: var(--esp-8); }
