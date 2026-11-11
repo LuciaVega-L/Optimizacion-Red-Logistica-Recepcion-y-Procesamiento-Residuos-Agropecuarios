@@ -9,7 +9,9 @@ export default function GraficaComparativa({ etiquetas, exacto, genetico, titulo
   }
   return (
     <div className="grafica">
-      <Bar data={{ labels: etiquetas, datasets: series }} options={{
+      <Bar role="img"
+        aria-label={`${tituloEje ?? 'Comparación'}: ${etiquetas.map((e, k) => `${e}, exacto ${formato(exacto[k])}${genetico?.[k] != null ? `, AG ${formato(genetico[k])}` : ''}`).join('; ')}`}
+        data={{ labels: etiquetas, datasets: series }} options={{
         responsive: true, maintainAspectRatio: false,
         plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formato(c.raw)}` } } },
         scales: { y: { type: logaritmica ? 'logarithmic' : 'linear', title: { display: !!tituloEje, text: tituloEje },

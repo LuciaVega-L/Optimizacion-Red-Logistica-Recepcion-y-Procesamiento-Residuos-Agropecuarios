@@ -6,14 +6,14 @@ export default function MatrizEditable({ filas, columnas, valores, onCambio, uni
       <table className="tabla tabla--compacta">
         <thead>
           <tr>
-            <th>{unidad ? `Empresa \\ Planta (${unidad})` : ''}</th>
-            {columnas.map((c) => <th key={c.id} title={c.nombre}>{c.id}</th>)}
+            <th scope="col">{unidad ? `Empresa \\ Planta (${unidad})` : ''}</th>
+            {columnas.map((c) => <th key={c.id} scope="col" title={c.nombre}>{c.id}</th>)}
           </tr>
         </thead>
         <tbody>
           {filas.map((f) => (
             <tr key={f.id}>
-              <th title={f.nombre}>{f.id}</th>
+              <th scope="row" title={f.nombre}>{f.id}</th>
               {columnas.map((c) => {
                 const v = valores[f.id]?.[c.id]
                 const invalido = v === '' || v === undefined || Number(v) < 0
@@ -21,7 +21,8 @@ export default function MatrizEditable({ filas, columnas, valores, onCambio, uni
                   <td key={c.id}>
                     <input type="number" min="0" step={paso} value={v ?? ''}
                       className={invalido ? 'input--error' : ''}
-                      aria-label={`${f.id} a ${c.id}`}
+                      aria-invalid={invalido || undefined} required
+                      aria-label={`Distancia de ${f.id} a ${c.id}${unidad ? ` en ${unidad}` : ''}`}
                       onChange={(e) => onCambio(f.id, c.id, e.target.value === '' ? '' : Number(e.target.value))} />
                   </td>
                 )

@@ -8,15 +8,15 @@ export default function TablaMatriz({ filas, columnas, matriz, formato = numero,
       <table className="tabla tabla--compacta tabla--numeros">
         <thead>
           <tr>
-            <th>{esquina}</th>
-            {columnas.map((c) => <th key={c}>{c}</th>)}
-            {totalesFila && <th>{etiquetaTotalFila}</th>}
+            <th scope="col">{esquina}</th>
+            {columnas.map((c) => <th key={c} scope="col">{c}</th>)}
+            {totalesFila && <th scope="col">{etiquetaTotalFila}</th>}
           </tr>
         </thead>
         <tbody>
           {filas.map((f, i) => (
             <tr key={f}>
-              <th>{f}</th>
+              <th scope="row">{f}</th>
               {matriz[i].map((v, j) => (
                 <td key={j} className={resaltar?.(v, i, j) ? 'celda--activa' : ''}>{formato(v)}</td>
               ))}
@@ -27,7 +27,7 @@ export default function TablaMatriz({ filas, columnas, matriz, formato = numero,
         {totalesColumna && (
           <tfoot>
             <tr>
-              <th>{etiquetaTotalColumna}</th>
+              <th scope="row">{etiquetaTotalColumna}</th>
               {totalesColumna.map((v, j) => <td key={j} className="celda--total">{formato(v)}</td>)}
               {totalesFila && <td />}
             </tr>

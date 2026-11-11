@@ -40,5 +40,8 @@ export default function GrafoRed({ fuentes, plantas, asignacion, ficticio, alto 
     return () => red.destroy()
   }, [fuentes, plantas, asignacion, ficticio])
 
-  return <div ref={ref} className="grafo" style={{ height: alto }} />
+  const descripcion = asignacion
+    ? `Grafo de flujos: ${fuentes.length} agroempresas envían residuos a ${plantas.length} plantas. El detalle está en la tabla de asignación.`
+    : `Grafo de la red: ${fuentes.length} agroempresas conectadas con ${plantas.length} plantas.`
+  return <div ref={ref} className="grafo" style={{ height: alto }} role="img" aria-label={descripcion} />
 }
