@@ -16,8 +16,8 @@ Web UI (React)  ──HTTP──►  FastAPI  ──SQLAlchemy (ORM)──►  P
 | Tabla **Escenarios**: id, nombre, fecha, parámetros de entrada (oferta, demanda, costos) | `escenarios.id`, `nombre`, `fecha`, `parametros_entrada` (JSON con `oferta`, `demanda`, `costos` cᵢⱼ, `distancias_km`...) |
 | Tabla **Resultados**: id, escenario_id, algoritmo_utilizado ("Exacto" \| "Genético"), costo_total, tiempo_ejecucion_ms, gap_desviacion, matriz_flujos_json | Tabla `resultados` con esas mismas columnas |
 | Conexión / ORM en Python | `app/db/sesion.py` (conexión) y `app/db/modelos.py` (modelos `Escenario`, `Resultado`, ...) con SQLAlchemy 2.0 |
-| Consultar y almacenar desde la Web UI | Endpoints `/api/escenarios` y `/api/resultados` + `frontend/src/api/historial.js` |
-| Guardar una ejecución y recuperar el historial para el análisis comparativo | `POST /api/resultados`, `GET /api/resultados`, `GET /api/escenarios`, `GET /api/resultados/comparativo` (probado en `tests/test_bd.py`) |
+| Consultar y almacenar desde la Web UI | Endpoints `/escenarios` y `/resultados` + `frontend/src/api/historial.js` |
+| Guardar una ejecución y recuperar el historial para el análisis comparativo | `POST /resultados`, `GET /resultados`, `GET /escenarios`, `GET /resultados/comparativo` (probado en `tests/test_bd.py`) |
 
 ### Tabla `escenarios`
 
@@ -152,7 +152,7 @@ Las pruebas usan escenarios temporales y los borran al final.
 ## Paso 8. Probar los endpoints
 
 ```powershell
-python -m uvicorn app.main:app --reload
+python -m uvicorn main:app --reload
 ```
 
 Abran **http://localhost:8000/docs**. Ahí aparecen las secciones *Historial de escenarios (BD)*
@@ -160,18 +160,18 @@ y *Resultados (BD)*, y cada endpoint se puede probar con **Try it out**:
 
 | Método | Ruta | Para qué |
 |---|---|---|
-| GET | `/api/escenarios` | Historial de escenarios (más reciente primero) |
-| GET | `/api/escenarios/{nombre}` | Un escenario con sus `parametros_entrada` |
-| GET | `/api/escenarios/{nombre}/config` | El escenario en formato `dataConfig.json` |
-| POST | `/api/escenarios` | Guardar un escenario `{nombre, config, descripcion?, reemplazar?}` |
-| POST | `/api/escenarios/{nombre}/clonar` | Copiar `{nuevo, variaciones?}` |
-| DELETE | `/api/escenarios/{nombre}` | Borrar un escenario y sus resultados |
-| POST | `/api/resultados` | **Guardar una ejecución** |
-| GET | `/api/resultados?escenario=&algoritmo=` | **Historial de resultados** |
-| GET | `/api/resultados/{id}` | Un resultado con matriz, precios sombra y fitness |
-| GET | `/api/resultados/comparativo?escenario=` | **Último Exacto vs. último Genético: costo, tiempo y gap** |
+| GET | `/escenarios` | Historial de escenarios (más reciente primero) |
+| GET | `/escenarios/{nombre}` | Un escenario con sus `parametros_entrada` |
+| GET | `/escenarios/{nombre}/config` | El escenario en formato `dataConfig.json` |
+| POST | `/escenarios` | Guardar un escenario `{nombre, config, descripcion?, reemplazar?}` |
+| POST | `/escenarios/{nombre}/clonar` | Copiar `{nuevo, variaciones?}` |
+| DELETE | `/escenarios/{nombre}` | Borrar un escenario y sus resultados |
+| POST | `/resultados` | **Guardar una ejecución** |
+| GET | `/resultados?escenario=&algoritmo=` | **Historial de resultados** |
+| GET | `/resultados/{id}` | Un resultado con matriz, precios sombra y fitness |
+| GET | `/resultados/comparativo?escenario=` | **Último Exacto vs. último Genético: costo, tiempo y gap** |
 
-Ejemplo de cuerpo para `POST /api/resultados`:
+Ejemplo de cuerpo para `POST /resultados`:
 
 ```json
 {

@@ -102,7 +102,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate   |   Linux/Mac: source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # en Windows: copy .env.example .env
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 
 - API: http://localhost:8000
@@ -145,18 +145,18 @@ pytest
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/red/escenarios` | Lista los escenarios disponibles |
-| GET | `/api/red/escenarios/{nombre}/problema` | Red convertida a oferta, capacidad y costos |
-| POST | `/api/red/validar` | Errores de datos y estado del balance |
-| POST | `/api/exacto/resolver` | Modelo exacto: Z\*, asignación, duales, verificación |
-| POST | `/api/genetico/resolver` | Algoritmo genético *(responde 501 hasta que se conecte el AG)* |
-| POST | `/api/sensibilidad/rangos` | Rangos de costos, oferta y capacidad |
-| POST | `/api/sensibilidad/simular` | Simulación de escenarios |
-| POST | `/api/sensibilidad/escenarios-predefinidos` | Combustible ±, oferta ±, cuellos de botella |
-| POST | `/api/comparativo/reporte` | Exacto vs. AG: costo, tiempo y gap |
-| POST | `/api/comparativo/escalabilidad` | Redes de 10, 20, 50 y 100 agroempresas |
-| GET/POST | `/api/escenarios` | Historial de escenarios *(requiere base de datos)* |
-| GET/POST | `/api/resultados` | Historial de ejecuciones *(requiere base de datos)* |
+| GET | `/red/escenarios` | Lista los escenarios disponibles |
+| GET | `/red/escenarios/{nombre}/problema` | Red convertida a oferta, capacidad y costos |
+| POST | `/red/validar` | Errores de datos y estado del balance |
+| POST | `/exacto/resolver` | Modelo exacto: Z\*, asignación, duales, verificación |
+| POST | `/genetico/resolver` | Algoritmo genético *(responde 501 hasta que se conecte el AG)* |
+| POST | `/sensibilidad/rangos` | Rangos de costos, oferta y capacidad |
+| POST | `/sensibilidad/simular` | Simulación de escenarios |
+| POST | `/sensibilidad/escenarios-predefinidos` | Combustible ±, oferta ±, cuellos de botella |
+| POST | `/comparativo/reporte` | Exacto vs. AG: costo, tiempo y gap |
+| POST | `/comparativo/escalabilidad` | Redes de 10, 20, 50 y 100 agroempresas |
+| GET/POST | `/escenarios` | Historial de escenarios *(requiere base de datos)* |
+| GET/POST | `/resultados` | Historial de ejecuciones *(requiere base de datos)* |
 
 ## Diagramas
 
