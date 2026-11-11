@@ -1,18 +1,21 @@
 // HU3 — Configuración y ejecución del Algoritmo Genético (la lógica del AG es del Rol 3).
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { resolverGenetico } from '../../api/genetico.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
+import EncabezadoPagina from '../../components/comunes/EncabezadoPagina.jsx'
 import { EsqueletoGrafica, EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
 import EstadoVacio from '../../components/comunes/EstadoVacio.jsx'
+import Icono from '../../components/comunes/Icono.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaConvergencia from '../../components/graficas/GraficaConvergencia.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
+import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
-import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { descargarCSV } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 
@@ -21,30 +24,32 @@ export const PARAMETROS_AG_INICIALES = {
   seleccion: 'torneo', tipo_cruce: 'un_punto', semilla: 1,
 }
 
-export function FormularioAG({ valores, onCambio }) {
+export function FormularioAG({ valores, onCambio, deshabilitado = false }) {
   const campo = (clave, titulo, props) => (
     <label className="campo">{titulo}
-      <input type="number" value={valores[clave] ?? ''} {...props}
+      <input type="number" value={valores[clave] ?? ''} disabled={deshabilitado} {...props}
         onChange={(e) => onCambio({ ...valores, [clave]: e.target.value === '' ? null : Number(e.target.value) })} />
     </label>
   )
   return (
     <div className="formulario">
-      {campo('poblacion', 'Tamaño de población', { min: 2, step: 10 })}
+      {campo('poblacion', 'Población', { min: 2, step: 10 })}
       {campo('generaciones', 'Generaciones', { min: 1, step: 50 })}
       {campo('tasa_cruce', 'Tasa de cruce', { min: 0, max: 1, step: 0.05 })}
       {campo('tasa_mutacion', 'Tasa de mutación', { min: 0, max: 1, step: 0.01 })}
       <label className="campo">Selección
-        <select value={valores.seleccion} onChange={(e) => onCambio({ ...valores, seleccion: e.target.value })}>
+        <select value={valores.seleccion} disabled={deshabilitado}
+          onChange={(e) => onCambio({ ...valores, seleccion: e.target.value })}>
           <option value="torneo">Torneo</option><option value="ruleta">Ruleta</option>
         </select>
       </label>
       <label className="campo">Cruce
-        <select value={valores.tipo_cruce} onChange={(e) => onCambio({ ...valores, tipo_cruce: e.target.value })}>
+        <select value={valores.tipo_cruce} disabled={deshabilitado}
+          onChange={(e) => onCambio({ ...valores, tipo_cruce: e.target.value })}>
           <option value="un_punto">Un punto</option><option value="dos_puntos">Dos puntos</option>
         </select>
       </label>
-      {campo('semilla', 'Semilla (vacío = aleatoria)', { step: 1 })}
+      {campo('semilla', 'Semilla', { step: 1, placeholder: 'Aleatoria' })}
     </div>
   )
 }
@@ -73,21 +78,18 @@ export default function Genetico() {
 
   return (
     <section>
-      <header className="encabezado">
-        <div>
-          <h1>Algoritmo genético</h1>
-          <p className="texto-suave">Cromosoma de proporciones por fila, fitness = 1/(1+Z) penalizado por exceso de capacidad.</p>
-        </div>
-        <div className="acciones">
-          <Boton onClick={correr} disabled={!problema || cargando}>Ejecutar AG</Boton>
-          {res && <Boton variante="secundario" onClick={exportar}>Exportar CSV</Boton>}
-        </div>
-      </header>
+      <EncabezadoPagina titulo="Algoritmo genético" descripcion="Busca una solución cercana al óptimo con una población que evoluciona.">
+        <Boton onClick={correr} disabled={!problema} cargando={cargando}>
+          {!cargando && <Icono nombre="jugar" tamano={16} />}Ejecutar AG
+        </Boton>
+        {res && <Boton variante="secundario" onClick={exportar}><Icono nombre="descargar" tamano={16} />CSV</Boton>}
+      </EncabezadoPagina>
 
       {!problema && <SinDatos errores={errores} />}
-      <Tarjeta titulo="Parámetros del algoritmo">
-        <FormularioAG valores={parametros} onCambio={setParametros} />
+      <Tarjeta titulo="Parámetros">
+        <FormularioAG valores={parametros} onCambio={setParametros} deshabilitado={cargando} />
       </Tarjeta>
+
       {cargando && (
         <Cargando texto="Evolucionando la población…">
           <EsqueletoKpis />
@@ -98,17 +100,17 @@ export default function Genetico() {
       {error && !cargando && <Aviso tipo="error" titulo="El algoritmo genético falló" mensajes={[error]} onReintentar={correr} />}
       {problema && !res && !cargando && !error && (
         <EstadoVacio titulo="Aún no hay ejecución" icono="jugar"
-          descripcion="Ajusta los parámetros y ejecuta el AG para ver la convergencia y la mejor asignación." />
+          descripcion="Ajusta los parámetros y pulsa «Ejecutar AG» para ver la convergencia y la mejor asignación." />
       )}
 
       {res && !cargando && (
         <>
           <div className="kpis">
-            <Tarjeta titulo="Mejor costo encontrado" valor={moneda(res.costo_total)} detalle="COP por semana" />
-            <Tarjeta titulo="Tiempo de ejecución" valor={segundos(res.tiempo_s)} />
-            <Tarjeta titulo="Factible" valor={res.factible ? '✔ Sí' : '✘ No'} />
+            <Tarjeta destacada titulo="Mejor costo" valor={moneda(res.costo_total)} detalle="COP por semana" />
             <Tarjeta titulo="Gap vs. exacto" valor={gap === null ? '—' : porcentaje(gap)}
-              detalle={gap === null ? 'Resuelve primero el modelo exacto' : undefined} />
+              detalle={gap === null ? <Link to="/exacto">Resuelve el exacto para calcularlo</Link> : undefined} />
+            <Tarjeta titulo="Factible" valor={res.factible ? 'Sí' : 'No'} tono={res.factible ? 'ok' : 'error'} />
+            <Tarjeta titulo="Tiempo" valor={segundos(res.tiempo_s)} />
           </div>
           <Tarjeta titulo="Convergencia">
             <GraficaConvergencia historial={res.historial_fitness} optimo={null} etiqueta="Fitness del mejor individuo" />

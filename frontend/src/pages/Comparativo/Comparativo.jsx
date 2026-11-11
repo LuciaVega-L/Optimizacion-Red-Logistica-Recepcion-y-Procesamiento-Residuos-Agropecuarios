@@ -7,15 +7,18 @@ import { resolverGenetico } from '../../api/genetico.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
-import { EsqueletoGrafica, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
+import EncabezadoPagina from '../../components/comunes/EncabezadoPagina.jsx'
+import { EsqueletoGrafica, EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
 import EstadoVacio from '../../components/comunes/EstadoVacio.jsx'
+import Icono from '../../components/comunes/Icono.jsx'
+import Plegable from '../../components/comunes/Plegable.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaComparativa from '../../components/graficas/GraficaComparativa.jsx'
 import { millones } from '../../components/graficas/registro.js'
+import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
-import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { descargarCSV, exportarPDF } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 import { FormularioAG, PARAMETROS_AG_INICIALES } from '../Genetico/Genetico.jsx'
@@ -57,6 +60,7 @@ export default function Comparativo() {
   const gapActual = gap(genetico?.costo_total, exacto?.costo_total)
   const conAg = sensibilidad?.escenarios.filter((e) => !e.error) ?? []
   const sensConAg = conAg.some((e) => e.genetico)
+  const ocupado = actual.cargando || escala.cargando
 
   const exportarResumen = () => {
     descargarCSV('reporte_comparativo',
@@ -80,30 +84,28 @@ export default function Comparativo() {
 
   return (
     <section>
-      <header className="encabezado">
-        <div>
-          <h1>Reporte comparativo</h1>
-          <p className="texto-suave">Gap (%) = (Z<sub>AG</sub> − Z<sub>exacto</sub>) / Z<sub>exacto</sub> × 100</p>
-        </div>
-        <div className="acciones no-imprimir">
-          <Boton variante="secundario" onClick={exportarPDF}>Exportar PDF</Boton>
-        </div>
-      </header>
+      <EncabezadoPagina titulo="Reporte comparativo" descripcion="Modelo exacto frente al algoritmo genético: costo, tiempo y gap.">
+        <Boton onClick={compararActual} disabled={!problema || escala.cargando} cargando={actual.cargando}>
+          {!actual.cargando && <Icono nombre="jugar" tamano={16} />}Comparar red actual
+        </Boton>
+        <Boton variante="secundario" onClick={exportarPDF} disabled={!exacto}>
+          <Icono nombre="descargar" tamano={16} />PDF
+        </Boton>
+      </EncabezadoPagina>
 
       {!problema && <SinDatos errores={errores} />}
 
-      <Tarjeta titulo="Parámetros del AG para el comparativo" className="no-imprimir">
-        <FormularioAG valores={parametros} onCambio={setParametros} />
-      </Tarjeta>
+      <div className="no-imprimir">
+        <Plegable titulo="Parámetros del AG usados en el comparativo">
+          <FormularioAG valores={parametros} onCambio={setParametros} deshabilitado={ocupado} />
+        </Plegable>
+      </div>
 
-      <Tarjeta titulo="1. Red actual">
-        <div className="acciones no-imprimir">
-          <Boton onClick={compararActual} disabled={!problema || actual.cargando}>Resolver con ambos métodos</Boton>
-          {exacto && <Boton variante="secundario" onClick={exportarResumen}>Exportar CSV</Boton>}
-        </div>
+      <Tarjeta titulo="Red actual" acciones={exacto && <Boton variante="fantasma" className="boton--mini" onClick={exportarResumen}>
+        <Icono nombre="descargar" tamano={16} />CSV</Boton>}>
         {actual.cargando && (
           <Cargando texto="Resolviendo con ambos métodos…">
-            <EsqueletoTabla filas={4} columnas={3} titulo={false} />
+            <EsqueletoKpis cantidad={3} />
             <div className="columnas"><EsqueletoGrafica alto={220} titulo={false} /><EsqueletoGrafica alto={220} titulo={false} /></div>
           </Cargando>
         )}
@@ -113,20 +115,16 @@ export default function Comparativo() {
         {errorAg && !actual.cargando && <Aviso tipo="alerta" titulo="El AG no terminó; se muestra solo el exacto" mensajes={[errorAg]} />}
         {problema && !exacto && !actual.cargando && !actual.error && (
           <EstadoVacio compacto titulo="Sin comparación todavía"
-            descripcion="Resuelve la red con ambos métodos para ver costo, tiempo y gap." />
+            descripcion="Pulsa «Comparar red actual» para resolver con ambos métodos." />
         )}
         {exacto && !actual.cargando && (
           <>
-            <div className="tabla-contenedor">
-              <table className="tabla tabla--numeros">
-                <thead><tr><th>Métrica</th><th>Exacto</th><th>Algoritmo genético</th></tr></thead>
-                <tbody>
-                  <tr><th>Costo total (COP/sem)</th><td>{moneda(exacto.costo_total)}</td><td>{moneda(genetico?.costo_total)}</td></tr>
-                  <tr><th>Tiempo de ejecución</th><td>{segundos(exacto.tiempo_s)}</td><td>{segundos(genetico?.tiempo_s)}</td></tr>
-                  <tr><th>Factible</th><td>{exacto.factible ? '✔' : '✘'}</td><td>{genetico ? (genetico.factible ? '✔' : '✘') : '—'}</td></tr>
-                  <tr><th>Gap</th><td>0 %</td><td>{porcentaje(gapActual)}</td></tr>
-                </tbody>
-              </table>
+            <div className="kpis">
+              <Tarjeta destacada titulo="Gap del AG" valor={porcentaje(gapActual)}
+                detalle={genetico ? 'Distancia al óptimo exacto' : 'Falta ejecutar el AG'} />
+              <Tarjeta titulo="Z* exacto" valor={moneda(exacto.costo_total)} detalle={segundos(exacto.tiempo_s)} />
+              <Tarjeta titulo="Z AG" valor={moneda(genetico?.costo_total)}
+                detalle={genetico ? `${segundos(genetico.tiempo_s)} · ${genetico.factible ? 'factible' : 'no factible'}` : undefined} />
             </div>
             <div className="columnas">
               <GraficaComparativa etiquetas={['Costo total']} exacto={[exacto.costo_total]}
@@ -138,10 +136,10 @@ export default function Comparativo() {
         )}
       </Tarjeta>
 
-      <Tarjeta titulo="2. Comportamiento ante el análisis de sensibilidad">
+      <Tarjeta titulo="Frente a los escenarios de sensibilidad">
         {!sensConAg && (
           <EstadoVacio compacto titulo={sensibilidad ? 'Los escenarios se simularon sin el AG' : 'Sin escenarios simulados'}
-            descripcion="Simula los escenarios con la opción «Resolver también con el AG» activada.">
+            descripcion="Simula los escenarios con la opción «Resolver también con el algoritmo genético» activada.">
             <Link to="/sensibilidad" className="boton boton--secundario">Ir a Sensibilidad</Link>
           </EstadoVacio>
         )}
@@ -163,27 +161,39 @@ export default function Comparativo() {
         )}
       </Tarjeta>
 
-      <Tarjeta titulo="3. Escalabilidad (redes sintéticas)">
-        <div className="formulario formulario--linea no-imprimir">
-          {tamanos.map(([n, m], k) => (
-            <span key={k} className="par">
-              <input type="number" min="1" value={n} aria-label="Fuentes"
-                onChange={(e) => setTamanos(tamanos.map((t, i) => (i === k ? [Number(e.target.value), t[1]] : t)))} />
-              ×
-              <input type="number" min="1" value={m} aria-label="Plantas"
-                onChange={(e) => setTamanos(tamanos.map((t, i) => (i === k ? [t[0], Number(e.target.value)] : t)))} />
-              <button className="boton boton--peligro boton--mini" onClick={() => setTamanos(tamanos.filter((_, i) => i !== k))}>✕</button>
-            </span>
-          ))}
-          <Boton variante="secundario" onClick={() => setTamanos([...tamanos, [200, 10]])}>+ Tamaño</Boton>
-          <label className="campo">Semillas del AG
-            <input value={semillas} onChange={(e) => setSemillas(e.target.value)} /></label>
-          <label className="campo campo--check">
-            <input type="checkbox" checked={incluirAg} onChange={(e) => setIncluirAg(e.target.checked)} /> Incluir AG
-          </label>
-          <Boton onClick={compararEscala} disabled={escala.cargando || !tamanos.length}>Ejecutar</Boton>
-          {escalabilidad && <Boton variante="secundario" onClick={exportarEscala}>Exportar CSV</Boton>}
+      <Tarjeta titulo="Escalabilidad en redes sintéticas" acciones={escalabilidad && (
+        <Boton variante="fantasma" className="boton--mini" onClick={exportarEscala}><Icono nombre="descargar" tamano={16} />CSV</Boton>)}>
+        <div className="no-imprimir">
+          <fieldset className="grupo">
+            <legend className="subtitulo">Tamaños (fuentes × plantas)</legend>
+            <div className="formulario formulario--linea">
+              {tamanos.map(([n, m], k) => (
+                <span key={k} className="par">
+                  <input type="number" min="1" value={n} aria-label={`Fuentes de la red ${k + 1}`} disabled={escala.cargando}
+                    onChange={(e) => setTamanos(tamanos.map((t, i) => (i === k ? [Number(e.target.value), t[1]] : t)))} />
+                  <span aria-hidden="true">×</span>
+                  <input type="number" min="1" value={m} aria-label={`Plantas de la red ${k + 1}`} disabled={escala.cargando}
+                    onChange={(e) => setTamanos(tamanos.map((t, i) => (i === k ? [t[0], Number(e.target.value)] : t)))} />
+                  <button type="button" className="boton boton--fantasma boton--mini" aria-label={`Quitar red ${n} × ${m}`}
+                    disabled={escala.cargando} onClick={() => setTamanos(tamanos.filter((_, i) => i !== k))}>
+                    <Icono nombre="cerrar" tamano={16} />
+                  </button>
+                </span>
+              ))}
+              <Boton variante="secundario" className="boton--mini" disabled={escala.cargando}
+                onClick={() => setTamanos([...tamanos, [200, 10]])}><Icono nombre="mas" tamano={16} />Tamaño</Boton>
+            </div>
+          </fieldset>
+          <div className="formulario formulario--linea">
+            <label className="campo">Semillas del AG
+              <input value={semillas} onChange={(e) => setSemillas(e.target.value)} disabled={escala.cargando} /></label>
+            <label className="campo campo--check">
+              <input type="checkbox" checked={incluirAg} onChange={(e) => setIncluirAg(e.target.checked)} disabled={escala.cargando} /> Incluir AG
+            </label>
+            <Boton onClick={compararEscala} disabled={!tamanos.length || actual.cargando} cargando={escala.cargando}>Medir escalabilidad</Boton>
+          </div>
         </div>
+
         {escala.cargando && (
           <Cargando texto="Resolviendo redes de distintos tamaños…">
             <EsqueletoTabla filas={4} columnas={9} titulo={false} />
@@ -195,11 +205,20 @@ export default function Comparativo() {
         )}
         {!escalabilidad && !escala.cargando && !escala.error && (
           <EstadoVacio compacto titulo={tamanos.length ? 'Sin resultados de escalabilidad' : 'Agrega al menos un tamaño de red'}
-            descripcion="Ejecuta para comparar tiempos y gap en redes sintéticas de distintos tamaños." />
+            descripcion="Compara tiempos y gap en redes sintéticas de distintos tamaños." />
         )}
         {escalabilidad && !escala.cargando && (
           <>
             {escalabilidad.some((f) => f.error_ag) && <Aviso tipo="alerta">{escalabilidad.find((f) => f.error_ag).error_ag}</Aviso>}
+            <div className="columnas">
+              <GraficaComparativa etiquetas={escalabilidad.map((f) => `${f.n_fuentes}×${f.n_plantas}`)}
+                exacto={escalabilidad.map((f) => f.tiempo_exacto_s)}
+                genetico={escalabilidad.map((f) => f.tiempo_ag_promedio_s ?? null)}
+                formato={(v) => `${Number(v).toFixed(3)} s`} tituloEje="Tiempo (s)" logaritmica />
+              {escalabilidad.some((f) => f.gap_promedio_pct != null) && <GraficaComparativa etiquetas={escalabilidad.map((f) => `${f.n_fuentes}×${f.n_plantas}`)}
+                exacto={escalabilidad.map(() => 0)} genetico={escalabilidad.map((f) => f.gap_promedio_pct ?? null)}
+                formato={(v) => `${Number(v).toFixed(2)} %`} tituloEje="Gap promedio (%)" />}
+            </div>
             <div className="tabla-contenedor">
               <table className="tabla tabla--compacta tabla--numeros">
                 <thead><tr><th>Red</th><th>Variables</th><th>Z exacto</th><th>Tiempo exacto</th>
@@ -214,15 +233,6 @@ export default function Comparativo() {
                   </tr>
                 ))}</tbody>
               </table>
-            </div>
-            <div className="columnas">
-              <GraficaComparativa etiquetas={escalabilidad.map((f) => `${f.n_fuentes}×${f.n_plantas}`)}
-                exacto={escalabilidad.map((f) => f.tiempo_exacto_s)}
-                genetico={escalabilidad.map((f) => f.tiempo_ag_promedio_s ?? null)}
-                formato={(v) => `${Number(v).toFixed(3)} s`} tituloEje="Tiempo (s)" logaritmica />
-              {escalabilidad.some((f) => f.gap_promedio_pct != null) && <GraficaComparativa etiquetas={escalabilidad.map((f) => `${f.n_fuentes}×${f.n_plantas}`)}
-                exacto={escalabilidad.map(() => 0)} genetico={escalabilidad.map((f) => f.gap_promedio_pct ?? null)}
-                formato={(v) => `${Number(v).toFixed(2)} %`} tituloEje="Gap promedio (%)" />}
             </div>
           </>
         )}

@@ -1,10 +1,14 @@
 // HU1 — Parametrización dinámica de la red: agroempresas, plantas, distancias y coeficientes.
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { listarEscenarios } from '../../api/red.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
+import EncabezadoPagina from '../../components/comunes/EncabezadoPagina.jsx'
 import { EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esqueleto.jsx'
+import Icono from '../../components/comunes/Icono.jsx'
+import Plegable from '../../components/comunes/Plegable.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import MatrizEditable from '../../components/matrices/MatrizEditable.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
@@ -98,74 +102,81 @@ export default function Parametrizacion() {
 
   return (
     <section>
-      <header className="encabezado">
-        <div>
-          <h1>Parametrización de la red</h1>
-          <p className="texto-suave">Los cambios se guardan en este navegador y se usan en todos los módulos.</p>
-        </div>
-        <div className="acciones">
-          <select value={seleccion} onChange={(e) => setSeleccion(e.target.value)} aria-label="Escenario">
-            {(escenarios.length ? escenarios : [{ id: 'dataConfig', nombre: 'dataConfig' }]).map((esc) => {
-              const nombre = typeof esc === 'string' ? esc : esc.nombre   // acepta ambos formatos
-              const clave = typeof esc === 'string' ? esc : esc.id
-              return (
-                <option key={clave} value={nombre}>
-                  {nombre}{esc.es_base ? ' (base)' : ''}
-                </option>
-              )
-            })}
-          </select>
-          <Boton variante="secundario" onClick={cargar} cargando={cargandoEscenario}>Cargar escenario</Boton>
-        </div>
-      </header>
+      <EncabezadoPagina titulo="Parametrización" descripcion="Datos de la red. Se guardan en este navegador y los usan todos los módulos.">
+        {problema
+          ? <Link to="/exacto" className="boton boton--primario"><Icono nombre="jugar" tamano={16} />Resolver la red</Link>
+          : <Boton disabled title="Corrige los datos marcados para poder resolver">Resolver la red</Boton>}
+      </EncabezadoPagina>
+
+      {error && <Aviso tipo="error" titulo="No se pudo cargar el escenario" mensajes={[error]} onReintentar={cargar} />}
+      <Aviso tipo="error" titulo={`${errores.length} ${errores.length === 1 ? 'dato por corregir' : 'datos por corregir'}`} mensajes={errores} />
 
       <div className="kpis">
-        <Tarjeta titulo="Agroempresas" valor={config.agroempresas.length} />
-        <Tarjeta titulo="Plantas" valor={config.plantas.length} />
-        <Tarjeta titulo="Oferta total" valor={`${numero(balance.oferta)} t/sem`} />
-        <Tarjeta titulo="Capacidad total" valor={`${numero(balance.capacidad)} t/sem`} />
+        <Tarjeta destacada titulo="Balance" valor={balance.estado === 'balanceado' ? 'Balanceada' : 'Desbalanceada'}
+          detalle={balance.estado === 'balanceado' ? 'Oferta igual a capacidad'
+            : balance.estado === 'oferta_menor'
+              ? `Sobran ${numero(balance.capacidad - balance.oferta)} t/sem: se agrega una agroempresa ficticia`
+              : `Faltan ${numero(balance.oferta - balance.capacidad)} t/sem: se agrega una planta ficticia`} />
+        <Tarjeta titulo="Oferta total" valor={numero(balance.oferta)} detalle="t/sem" />
+        <Tarjeta titulo="Capacidad total" valor={numero(balance.capacidad)} detalle="t/sem" />
+        <Tarjeta titulo="Nodos" valor={`${config.agroempresas.length} + ${config.plantas.length}`} detalle="agroempresas + plantas" />
       </div>
 
-      <Aviso tipo={balance.estado === 'balanceado' ? 'ok' : 'info'} titulo="Balance de la red">{balance.texto}</Aviso>
-      {error && <Aviso tipo="error" titulo="No se pudo cargar el escenario" mensajes={[error]} />}
-      {errorLista && <Aviso tipo="alerta" mensajes={['No se pudo obtener la lista de escenarios; solo está disponible el caso base.']} />}
-      <Aviso tipo="error" titulo="Errores en los datos" mensajes={errores} />
+      <div className="columnas columnas--angosta">
+        <Tarjeta titulo="Escenario">
+          <div className="formulario formulario--linea">
+            <label className="campo">Escenario guardado
+              <select value={seleccion} onChange={(e) => setSeleccion(e.target.value)} disabled={cargandoEscenario}>
+                {(escenarios.length ? escenarios : [{ id: 'dataConfig', nombre: 'dataConfig' }]).map((esc) => {
+                  const nombre = typeof esc === 'string' ? esc : esc.nombre   // acepta ambos formatos
+                  const clave = typeof esc === 'string' ? esc : esc.id
+                  return (
+                    <option key={clave} value={nombre}>
+                      {nombre}{esc.es_base ? ' (base)' : ''}
+                    </option>
+                  )
+                })}
+              </select>
+            </label>
+            <Boton variante="secundario" onClick={cargar} cargando={cargandoEscenario}>Cargar</Boton>
+          </div>
+          {errorLista && <p className="texto-suave">No se pudo obtener la lista del servidor; solo está el caso base.</p>}
+        </Tarjeta>
+        <Tarjeta titulo="Costo de transporte">
+          <label className="campo">COP por km·tonelada
+            <input type="number" min="0" value={config.parametros_globales.costo_transporte_km_ton}
+              onChange={(e) => actualizarConfig((c) => {
+                c.parametros_globales.costo_transporte_km_ton = e.target.value === '' ? '' : Number(e.target.value)
+                return c
+              })} />
+          </label>
+          <p className="texto-suave nota">c<sub>ij</sub> = d<sub>ij</sub> × costo km·t + costo operativo<sub>j</sub></p>
+        </Tarjeta>
+      </div>
 
-      <Tarjeta titulo="Coeficientes globales">
-        <label className="campo">
-          Costo de transporte (COP por km·tonelada)
-          <input type="number" min="0" value={config.parametros_globales.costo_transporte_km_ton}
-            onChange={(e) => actualizarConfig((c) => {
-              c.parametros_globales.costo_transporte_km_ton = e.target.value === '' ? '' : Number(e.target.value)
-              return c
-            })} />
-        </label>
-        <p className="texto-suave">c<sub>ij</sub> = d<sub>ij</sub> × costo km·t + costo operativo<sub>j</sub></p>
-      </Tarjeta>
-
-      <Tarjeta titulo="Agroempresas (fuentes)">
+      <Tarjeta titulo={`Agroempresas (${config.agroempresas.length})`} acciones={
+        <Boton variante="secundario" className="boton--mini" onClick={agregarEmpresa}><Icono nombre="mas" tamano={16} />Agregar</Boton>}>
         <VectorEditable elementos={config.agroempresas} columnas={COLS_EMPRESAS}
           onCambio={cambiarEntidad('agroempresas')} onEliminar={eliminarEmpresa} />
-        <Boton variante="secundario" onClick={agregarEmpresa}>+ Agregar agroempresa</Boton>
       </Tarjeta>
 
-      <Tarjeta titulo="Plantas (destinos)">
+      <Tarjeta titulo={`Plantas (${config.plantas.length})`} acciones={
+        <Boton variante="secundario" className="boton--mini" onClick={agregarPlanta}><Icono nombre="mas" tamano={16} />Agregar</Boton>}>
         <VectorEditable elementos={config.plantas} columnas={COLS_PLANTAS}
           onCambio={cambiarEntidad('plantas')} onEliminar={eliminarPlanta} />
-        <Boton variante="secundario" onClick={agregarPlanta}>+ Agregar planta</Boton>
       </Tarjeta>
 
-      <Tarjeta titulo="Matriz de distancias viales (km)">
+      <Tarjeta titulo="Distancias viales (km)">
         <MatrizEditable filas={config.agroempresas} columnas={config.plantas} unidad="km"
           valores={config.matriz_distancias_km}
           onCambio={(e, p, v) => actualizarConfig((c) => { c.matriz_distancias_km[e][p] = v; return c })} />
       </Tarjeta>
 
       {problema && (
-        <Tarjeta titulo="Costo unitario total calculado (COP/t)">
+        <Plegable titulo="Costo unitario calculado (COP/t)">
           <TablaMatriz filas={problema.fuentes} columnas={problema.plantas} matriz={problema.costos}
             formato={moneda} esquina="Empresa" />
-        </Tarjeta>
+        </Plegable>
       )}
     </section>
   )
