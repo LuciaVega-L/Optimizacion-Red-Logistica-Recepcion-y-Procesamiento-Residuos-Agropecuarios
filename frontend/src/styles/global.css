@@ -74,11 +74,11 @@ input[type='checkbox'] { min-height: 0; width: 1.125rem; height: 1.125rem; accen
 .tarjeta--enlace { display: block; color: inherit; text-decoration: none; }
 
 /* KPI: la etiqueta va pequeña y el valor es lo que se lee primero */
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--esp-4); margin-bottom: var(--esp-4); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: var(--esp-4); margin-bottom: var(--esp-4); }
 .kpis .tarjeta { margin-bottom: 0; padding: var(--esp-4); }
 .kpis .tarjeta__titulo { font-size: var(--texto-xs); font-weight: var(--peso-medio); color: var(--color-texto-suave); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: var(--esp-2); }
-.rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--esp-4); margin-bottom: var(--esp-4); }
-.columnas { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: var(--esp-4); }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--esp-4); margin-bottom: var(--esp-4); }
+.columnas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: var(--esp-4); }
 
 /* ================= Avisos ================= */
 .aviso {
@@ -112,7 +112,7 @@ input[type='checkbox'] { min-height: 0; width: 1.125rem; height: 1.125rem; accen
 .celda--total { font-weight: var(--peso-negrita); }
 
 /* ================= Formularios ================= */
-.formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--esp-3); margin: var(--esp-2) 0; }
+.formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: var(--esp-3); margin: var(--esp-2) 0; }
 .formulario--linea { display: flex; flex-wrap: wrap; align-items: flex-end; }
 .campo { display: flex; flex-direction: column; gap: var(--esp-1); font-size: var(--texto-sm); font-weight: var(--peso-medio); color: var(--color-texto-suave); }
 .campo--check { flex-direction: row; align-items: center; gap: var(--esp-2); margin: var(--esp-2) 0; font-weight: var(--peso-normal); color: var(--color-texto); cursor: pointer; }
@@ -266,3 +266,29 @@ input[type='checkbox']:disabled { cursor: not-allowed; }
 .notificacion__cerrar:active { background: var(--gris-600); }
 .notificacion__cerrar:focus-visible { outline: 2px solid var(--azul-300); outline-offset: 1px; }
 @keyframes entrar { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ================= Diseño responsive ================= */
+.columnas > .tarjeta, .columnas > * { min-width: 0; }
+.tabla-contenedor { -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 860px) {
+  h1 { font-size: var(--texto-xl); }
+  .encabezado { flex-direction: column; align-items: stretch; margin-bottom: var(--esp-4); }
+  .encabezado .acciones { justify-content: flex-start; }
+  .tarjeta { padding: var(--esp-4); border-radius: var(--radio-md); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-3); }
+  .kpis .tarjeta { padding: var(--esp-3); }
+  .tarjeta__valor { font-size: var(--texto-lg); overflow-wrap: anywhere; }
+  .grafica { height: 260px; }
+  .estado-vacio { padding: var(--esp-5) var(--esp-4); }
+  .formulario--linea > .campo { flex: 1 1 10rem; }
+  .formulario--linea input:not([type='checkbox']), .formulario--linea select { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .acciones > .boton, .acciones > select, .estado-vacio__acciones > .boton { flex: 1 1 auto; }
+  .estado-vacio { flex-direction: column; gap: var(--esp-3); }
+  .aviso { flex-wrap: wrap; }
+  .aviso__accion { margin-left: calc(20px + var(--esp-3)); }
+  .notificaciones { left: var(--esp-4); right: var(--esp-4); bottom: var(--esp-4); width: auto; }
+}
