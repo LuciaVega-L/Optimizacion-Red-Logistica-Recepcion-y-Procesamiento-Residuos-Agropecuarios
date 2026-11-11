@@ -133,3 +133,60 @@ input[type='checkbox'] { min-height: 0; width: 1.125rem; height: 1.125rem; accen
   .layout__contenido { padding: 0; }
   .tarjeta { break-inside: avoid; box-shadow: none; }
 }
+
+/* ================= Estados de interacción =================
+   hover: el cursor está encima · focus-visible: foco con teclado · active: mientras se pulsa
+   disabled: no disponible (sin hover ni active) */
+.boton, .tarjeta--enlace, input, select, .layout__nav a, .menu-boton {
+  transition: background-color var(--duracion-rapida) var(--curva), border-color var(--duracion-rapida) var(--curva),
+    color var(--duracion-rapida) var(--curva), box-shadow var(--duracion-rapida) var(--curva),
+    transform var(--duracion-rapida) var(--curva);
+}
+
+/* Foco visible y consistente para todo lo que se puede enfocar */
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--color-primario); outline-offset: 2px; border-radius: var(--radio-sm); }
+.boton:focus-visible, input:focus-visible, select:focus-visible { outline: none; box-shadow: var(--anillo-foco); }
+
+/* Botones */
+.boton--primario:hover:not(:disabled) { background: var(--color-primario-hover); }
+.boton--primario:active:not(:disabled) { background: var(--color-primario-activo); }
+.boton--secundario:hover:not(:disabled) { background: var(--color-superficie-alt); border-color: var(--gris-400); }
+.boton--secundario:active:not(:disabled) { background: var(--color-borde); }
+.boton--fantasma:hover:not(:disabled) { background: var(--color-primario-suave); }
+.boton--fantasma:active:not(:disabled) { background: var(--azul-100); }
+.boton--peligro:hover:not(:disabled) { background: var(--color-error-suave); border-color: var(--color-error); }
+.boton--peligro:active:not(:disabled) { background: var(--color-error-borde); }
+.boton:active:not(:disabled) { transform: translateY(1px); }
+.boton:disabled, .boton[aria-disabled='true'] {
+  background: var(--color-deshabilitado); border-color: transparent; color: var(--color-texto-deshabilitado);
+  box-shadow: none; cursor: not-allowed; pointer-events: auto;
+}
+.boton[aria-busy='true'] { cursor: progress; }
+.boton__giro {
+  width: 1em; height: 1em; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent;
+  animation: giro 0.7s linear infinite;
+}
+@keyframes giro { to { transform: rotate(360deg); } }
+
+/* Enlaces */
+a:hover { color: var(--color-primario-hover); }
+a:active { color: var(--color-primario-activo); }
+
+/* Campos de texto, números y listas */
+input:hover:not(:disabled):not(:focus), select:hover:not(:disabled):not(:focus) { border-color: var(--gris-400); }
+input:focus, select:focus { border-color: var(--color-primario); }
+input:disabled, select:disabled { background: var(--color-deshabilitado); color: var(--color-texto-deshabilitado); cursor: not-allowed; }
+.input--error:focus-visible, [aria-invalid='true']:focus-visible { box-shadow: 0 0 0 3px var(--color-error-borde); }
+select { cursor: pointer; }
+input[type='checkbox'] { cursor: pointer; }
+input[type='checkbox']:disabled { cursor: not-allowed; }
+
+/* Tarjetas que son enlaces */
+.tarjeta--enlace:hover { border-color: var(--color-primario-borde); box-shadow: var(--sombra-md); }
+.tarjeta--enlace:active { background: var(--color-primario-suave); }
+.tarjeta--enlace:focus-visible { outline: none; box-shadow: var(--anillo-foco); }
+
+/* Filas de tabla */
+.tabla tbody tr:hover > * { background-color: var(--color-superficie-alt); }
+.tabla tbody tr:hover > .celda--activa { background-color: var(--azul-100); }

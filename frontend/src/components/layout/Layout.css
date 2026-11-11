@@ -11,3 +11,9 @@
 .layout__nav a.active { background: var(--azul-700); color: var(--gris-0); }
 .layout__marca { margin: 0 var(--esp-3) var(--esp-6); font-size: var(--texto-lg); font-weight: var(--peso-negrita); color: var(--gris-0); }
 .layout__contenido { flex: 1; min-width: 0; padding: var(--esp-8); }
+
+/* Estados del menú */
+.layout__nav a:hover { background: var(--azul-900); color: var(--gris-0); }
+.layout__nav a:active { background: var(--azul-800); }
+.layout__nav a.active:hover { background: var(--azul-600); }
+.layout__nav a:focus-visible { outline: 2px solid var(--azul-300); outline-offset: 0; }
