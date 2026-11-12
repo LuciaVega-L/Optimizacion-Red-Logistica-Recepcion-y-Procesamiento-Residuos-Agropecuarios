@@ -14,7 +14,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
-from app.main import app
+from main import app
 from app.services.red import repositorio
 
 pytestmark = pytest.mark.skipif(not settings.usa_bd, reason="FUENTE_DATOS != bd")
@@ -43,13 +43,13 @@ def asignacion_voraz(problema):
 @pytest.fixture(scope="module", autouse=True)
 def escenario_temporal():
     for n in (NOMBRE, COPIA):
-        cliente.delete(f"/api/escenarios/{n}")
-    r = cliente.post("/api/escenarios", json={"nombre": NOMBRE, "config": leer_json_base(),
+        cliente.delete(f"/escenarios/{n}")
+    r = cliente.post("/escenarios", json={"nombre": NOMBRE, "config": leer_json_base(),
                                               "descripcion": "temporal de pytest"})
     assert r.status_code == 201, r.text
     yield r.json()
     for n in (NOMBRE, COPIA):
-        cliente.delete(f"/api/escenarios/{n}")
+        cliente.delete(f"/escenarios/{n}")
 
 
 def test_tabla_escenarios_tiene_id_nombre_fecha_y_parametros(escenario_temporal):
@@ -65,7 +65,7 @@ def test_tabla_escenarios_tiene_id_nombre_fecha_y_parametros(escenario_temporal)
 
 def test_mismo_formato_que_dataconfig():
     base = leer_json_base()
-    en_bd = cliente.get(f"/api/escenarios/{NOMBRE}/config").json()
+    en_bd = cliente.get(f"/escenarios/{NOMBRE}/config").json()
     for clave in ("parametros_globales", "plantas", "agroempresas", "matriz_distancias_km"):
         assert en_bd[clave] == base[clave], clave
 
@@ -74,7 +74,7 @@ def test_guardar_ejecucion_y_recuperar_historial():
     problema = repositorio.a_problema(leer_json_base())
     x, costo = asignacion_voraz(problema)
 
-    r_ag = cliente.post("/api/resultados", json={
+    r_ag = cliente.post("/resultados", json={
         "escenario": NOMBRE, "algoritmo_utilizado": "genetico", "costo_total": costo * 1.05,
         "tiempo_ejecucion_ms": 850.5, "matriz_flujos": x, "factible": True,
         "parametros_algoritmo": {"poblacion": 100, "generaciones": 500}})
@@ -83,7 +83,7 @@ def test_guardar_ejecucion_y_recuperar_historial():
     assert ag["algoritmo_utilizado"] == "Genético"
     assert ag["gap_desviacion"] is None            # aún no hay resultado exacto
 
-    r_ex = cliente.post("/api/resultados", json={
+    r_ex = cliente.post("/resultados", json={
         "escenario": NOMBRE, "algoritmo_utilizado": "Exacto", "costo_total": costo,
         "tiempo_ejecucion_ms": 12.3, "matriz_flujos": x, "factible": True,
         "precios_sombra_oferta": [0.0] * len(problema.oferta),
@@ -97,46 +97,46 @@ def test_guardar_ejecucion_y_recuperar_historial():
     assert len(ex["precios_sombra"]) == len(problema.oferta) + len(problema.demanda)
 
     # al guardar el exacto se completa el gap del genético
-    ag = cliente.get(f"/api/resultados/{ag['id']}").json()
+    ag = cliente.get(f"/resultados/{ag['id']}").json()
     assert ag["gap_desviacion"] == pytest.approx(5.0)
     assert ag["resultado_exacto_id"] == ex["id"]
 
-    historial = cliente.get("/api/resultados", params={"escenario": NOMBRE}).json()
+    historial = cliente.get("/resultados", params={"escenario": NOMBRE}).json()
     assert [h["algoritmo_utilizado"] for h in historial] == ["Exacto", "Genético"]
 
-    comp = cliente.get("/api/resultados/comparativo", params={"escenario": NOMBRE}).json()
+    comp = cliente.get("/resultados/comparativo", params={"escenario": NOMBRE}).json()
     assert len(comp) == 1
     assert comp[0]["gap_desviacion"] == pytest.approx(5.0)
     assert comp[0]["tiempo_exacto_ms"] == pytest.approx(12.3)
 
-    escenarios = cliente.get("/api/escenarios").json()
+    escenarios = cliente.get("/escenarios").json()
     fila = next(e for e in escenarios if e["nombre"] == NOMBRE)
     assert fila["num_resultados"] == 2
 
 
 def test_validaciones():
-    malo = cliente.post("/api/resultados", json={
+    malo = cliente.post("/resultados", json={
         "escenario": NOMBRE, "algoritmo_utilizado": "Exacto", "costo_total": 1,
         "tiempo_ejecucion_ms": 1, "matriz_flujos": [[1, 2]]})
     assert malo.status_code == 422 and "matriz_flujos_json" in malo.text
 
-    alg = cliente.post("/api/resultados", json={
+    alg = cliente.post("/resultados", json={
         "escenario": NOMBRE, "algoritmo_utilizado": "Otro", "costo_total": 1,
         "tiempo_ejecucion_ms": 1, "matriz_flujos": [[0]]})
     assert alg.status_code == 422
 
-    assert cliente.get("/api/escenarios/no-existe").status_code == 404
-    dup = cliente.post("/api/escenarios", json={"nombre": NOMBRE, "config": leer_json_base()})
+    assert cliente.get("/escenarios/no-existe").status_code == 404
+    dup = cliente.post("/escenarios", json={"nombre": NOMBRE, "config": leer_json_base()})
     assert dup.status_code == 409
 
 
 def test_clonar_no_modifica_original():
-    r = cliente.post(f"/api/escenarios/{NOMBRE}/clonar",
+    r = cliente.post(f"/escenarios/{NOMBRE}/clonar",
                      json={"nuevo": COPIA, "variaciones": {"variacion_costos_pct": 10}})
     assert r.status_code == 201, r.text
-    copia = cliente.get(f"/api/escenarios/{COPIA}/config").json()
+    copia = cliente.get(f"/escenarios/{COPIA}/config").json()
     copia["agroempresas"][0]["oferta_ton_sem"] = 999
-    r = cliente.post("/api/escenarios", json={"nombre": COPIA, "config": copia, "reemplazar": True})
+    r = cliente.post("/escenarios", json={"nombre": COPIA, "config": copia, "reemplazar": True})
     assert r.json()["parametros_entrada"]["oferta"][0] == 999
-    original = cliente.get(f"/api/escenarios/{NOMBRE}").json()
+    original = cliente.get(f"/escenarios/{NOMBRE}").json()
     assert original["parametros_entrada"]["oferta"][0] != 999
