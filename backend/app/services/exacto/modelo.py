@@ -2,10 +2,8 @@
 
 El modelo se construye siempre en su forma **balanceada** (HU2):
 
-* Oferta < capacidad → se agrega una agroempresa ficticia (p. ej. E11) con oferta igual a la
-  capacidad sobrante y costo 0. Su flujo hacia la planta j es la capacidad ociosa de j.
-* Oferta > capacidad → se agrega una planta ficticia con capacidad igual al faltante. Su flujo
-  es residuo que no se puede procesar (costo `costo_no_procesado`, 0 por defecto).
+* Oferta < capacidad → se agrega una agroempresa ficticia
+* Oferta > capacidad → se agrega una planta ficticia con capacidad igual al faltante. 
 * Oferta = capacidad → no se agrega nada.
 
 Forma balanceada (todas las restricciones con igualdad):
@@ -58,7 +56,6 @@ class ModeloTransporte:
 
 
 def siguiente_id(ids: list[str], respaldo: str) -> str:
-    """E01..E10 -> E11 ; P1..P4 -> P5 ; si los ids no siguen un patrón, usa `respaldo`."""
     partes = [re.fullmatch(r"([A-Za-z_]*)(\d+)", x) for x in ids]
     if ids and all(partes) and len({p.group(1) for p in partes}) == 1:
         prefijo = partes[0].group(1)
