@@ -10,22 +10,22 @@ Sistema web que minimiza el costo semanal de transportar residuos agropecuarios 
 |---|---|---|
 | Red y parametrización | ✅ Listo | Carga, edición, validación y balanceo de la red |
 | Modelo exacto | ✅ Listo | PuLP + CBC, precios sombra, verificación de restricciones |
+| Algoritmo genético | ✅ Listo | Conectado a la API con `ejecutar(problema, parametros)`; selección por torneo o ruleta, cruce de uno o dos puntos |
 | Análisis de sensibilidad | ✅ Listo | Rangos de la base óptima y simulación de escenarios |
+| Reporte comparativo | ✅ Listo | Exacto vs. AG: costo, tiempo, gap y escalabilidad |
 | Base de datos (Supabase) | ✅ Listo | Historial de escenarios y resultados |
-| Algoritmo genético | 🟡 En progreso | El AG funciona como módulo; falta la función `ejecutar(problema, parametros)` que lo conecta a la API |
-| Reporte comparativo | 🟡 En progreso | Depende de la conexión del AG |
 | Informe IEEE | 🟡 En progreso | En `docs/informe-ieee/` |
 
-Pruebas: **47 pasan y 6 se omiten** (las omitidas son las del AG, que se activan cuando termine la conexión).
+Pruebas: **47 pasan y 6 se omiten** (las omitidas están pendientes de activar).
 
 ## Equipo y roles
 
 | Rol | Integrante | Responsabilidad |
 |---|---|---|
-| 1. Líder de proyecto / Analista de negocio | _(nombre)_ | Coordinación, informe IEEE, validación del modelo de negocio |
-| 2. Ingeniero de modelado y optimización | _(nombre)_ | Formulación matemática y solver exacto |
-| 3. Desarrollador de metaheurísticas | _(nombre)_ | Algoritmo genético |
-| 4. Desarrollador de software e interfaz | _(nombre)_ | Arquitectura, interfaz, sensibilidad y reportes |
+| 1. Líder de proyecto / Analista de negocio | Lucia Vega | Coordinación, informe IEEE, validación del modelo de negocio |
+| 2. Ingeniero de modelado y optimización | Emmanuel Camacho | Formulación matemática y solver exacto |
+| 3. Desarrollador de metaheurísticas | Astrid Martinez | Algoritmo genético |
+| 4. Desarrollador de software e interfaz | Samuel Martinez | Arquitectura, interfaz, sensibilidad y reportes |
 
 ## Modelo matemático
 
@@ -43,7 +43,16 @@ Si la oferta total no es igual a la capacidad total, el sistema balancea la red 
 - una **agroempresa ficticia** con costo 0 si sobra capacidad;
 - una **planta ficticia**, que representa el residuo no procesado, si falta capacidad.
 
-Con el caso base el resultado es **Z\* = 132.532.000 COP/semana**, con la agroempresa ficticia E11.
+Con el caso base el resultado es **Z\* = 132.532.000 COP/semana**, con la agroempresa ficticia E11 (oferta 1.540 t/sem, capacidad 1.700 t/sem, holgura de 160 t/sem en Puerto Gaitán).
+
+## Algoritmo genético
+
+- **Cromosoma:** matriz de flujos *X* (empresas × plantas) en toneladas/semana, trabajada sobre la **misma red balanceada** que usa el solver exacto (incluye el nodo ficticio). Así ambos métodos resuelven el mismo problema y el gap es comparable.
+- **Factibilidad:** cada fila se reescala para sumar exactamente su oferta, y un operador de **reparación** mueve el exceso de las plantas saturadas hacia las que tienen holgura (las más baratas primero). La **penalización cuadrática** queda como respaldo.
+- **Aptitud:** `fitness = 1 / (1 + Z)`, con Z = costo + penalizaciones. La selección compara Z directamente.
+- **Operadores:** selección por torneo o ruleta, cruce de uno o dos puntos y mutación que traslada toneladas de una planta a otra dentro de la misma empresa (conserva la oferta).
+- **Parámetros ajustables desde la interfaz:** población (100), generaciones (500), tasa de cruce (0,8), tasa de mutación (0,05), tipo de selección, tipo de cruce y semilla.
+- **Calidad:** el gap se calcula como (Z_AG − Z_exacto) / Z_exacto × 100. Con los parámetros por defecto y semilla 1 el caso base da 134.370.550 COP/semana (gap ≈ 1,39 %).
 
 ## Arquitectura
 
@@ -57,6 +66,15 @@ Navegador (React + Vite)  ──HTTP/JSON──►  API REST (FastAPI, Python)  
 ```
 
 Sin base de datos, el sistema lee los escenarios de `backend/data/escenarios/*.json` (`FUENTE_DATOS=json`).
+
+## Requerimientos no funcionales
+
+- **Rendimiento:** el modelo exacto resuelve el caso base en menos de 1 segundo y el AG con parámetros por defecto en pocos segundos.
+- **Usabilidad:** interfaz web con una página por módulo y mensajes de error claros ante datos inválidos.
+- **Confiabilidad:** resultados reproducibles (el AG acepta semilla) y pruebas automáticas con pytest.
+- **Portabilidad:** funciona en cualquier navegador moderno y en Windows, Linux o Mac (Python 3.11+, Node.js 18+).
+- **Mantenibilidad:** código dividido en módulos independientes por responsabilidad.
+- **Disponibilidad de datos:** puede funcionar sin base de datos, leyendo el caso base desde JSON.
 
 ## Estructura del repositorio
 
@@ -149,7 +167,7 @@ pytest
 | GET | `/red/escenarios/{nombre}/problema` | Red convertida a oferta, capacidad y costos |
 | POST | `/red/validar` | Errores de datos y estado del balance |
 | POST | `/exacto/resolver` | Modelo exacto: Z\*, asignación, duales, verificación |
-| POST | `/genetico/resolver` | Algoritmo genético *(responde 501 hasta que se conecte el AG)* |
+| POST | `/genetico/resolver` | Algoritmo genético: mejor costo, asignación, tiempo, factibilidad e historial |
 | POST | `/sensibilidad/rangos` | Rangos de costos, oferta y capacidad |
 | POST | `/sensibilidad/simular` | Simulación de escenarios |
 | POST | `/sensibilidad/escenarios-predefinidos` | Combustible ±, oferta ±, cuellos de botella |
