@@ -11,8 +11,8 @@ import { ubicar } from '../../utils/ubicaciones.js'
 
 const COLOR_FUENTE = '#15803d'
 const COLOR_PLANTA = '#1d4ed8'
-const COLOR_FLUJO = '#1d4ed8'
-const COLOR_RUTA = '#94a3b8'
+const COLOR_FLUJO = '#1e3a8a'
+const COLOR_RUTA = '#334155'
 
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 
@@ -64,8 +64,8 @@ export default function MapaRed({ fuentes, plantas, asignacion, ficticio, alto =
       if (asignacion && x <= 1e-6) return
       const km = config?.matriz_distancias_km?.[f]?.[p]
       const linea = L.polyline([a, b], asignacion
-        ? { color: COLOR_FLUJO, weight: 2 + 8 * (x / maximo), opacity: 0.75 }
-        : { color: COLOR_RUTA, weight: 1, opacity: 0.6, dashArray: '4 4' }).addTo(mapa)
+        ? { color: COLOR_FLUJO, weight: 2 + 8 * (x / maximo), opacity: 0.9 }
+        : { color: COLOR_RUTA, weight: 1.5, opacity: 0.85, dashArray: '4 4' }).addTo(mapa)
       linea.bindTooltip(`<strong>${esc(f)} → ${esc(p)}</strong>`
         + (asignacion ? `<br>${numero(x, 1)} t/sem` : '')
         + (km != null && km !== '' ? `<br>${numero(Number(km))} km (matriz)` : ''), { sticky: true })
