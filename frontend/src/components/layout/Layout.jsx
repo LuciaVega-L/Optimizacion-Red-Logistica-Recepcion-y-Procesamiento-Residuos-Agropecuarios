@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import Icono from '../comunes/Icono.jsx'
+import Logo from './Logo.jsx'
 import './Layout.css'
 
 const enlaces = [
@@ -38,7 +39,7 @@ export default function Layout() {
     <div className="layout">
       <a href="#contenido" className="saltar-enlace">Saltar al contenido</a>
       <header className="layout__barra">
-        <span className="layout__marca">EcoResiduos</span>
+        <span className="layout__marca"><Logo tamano={28} />EcoResiduos</span>
         <button type="button" className="menu-boton" aria-expanded={menuAbierto} aria-controls="navegacion"
           aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'} onClick={() => setMenuAbierto((v) => !v)}>
           <Icono nombre={menuAbierto ? 'cerrar' : 'menu'} tamano={22} />
@@ -46,7 +47,10 @@ export default function Layout() {
       </header>
 
       <nav id="navegacion" aria-label="Principal" className={`layout__nav ${menuAbierto ? 'layout__nav--abierto' : ''}`}>
-        <span className="layout__marca layout__marca--lateral">EcoResiduos</span>
+        <span className="layout__marca layout__marca--lateral">
+          <Logo tamano={36} />
+          <span className="layout__marca-texto">EcoResiduos<small>del Llano</small></span>
+        </span>
         {enlaces.map(([ruta, texto]) => (
           <NavLink key={ruta} to={ruta} end={ruta === '/'}>{texto}</NavLink>
         ))}

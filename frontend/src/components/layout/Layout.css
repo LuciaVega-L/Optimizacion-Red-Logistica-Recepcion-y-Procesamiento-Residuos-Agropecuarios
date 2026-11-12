@@ -10,7 +10,10 @@
   padding: var(--esp-2) var(--esp-3); border-radius: var(--radio-md); min-height: 2.5rem; display: flex; align-items: center;
 }
 .layout__nav a.active { background: var(--azul-700); color: var(--gris-0); }
-.layout__marca { font-size: var(--texto-lg); font-weight: var(--peso-negrita); color: var(--gris-0); }
+.layout__marca { font-size: var(--texto-lg); font-weight: var(--peso-negrita); color: var(--gris-0); display: inline-flex; align-items: center; gap: var(--esp-2); }
+.layout__marca .logo { flex-shrink: 0; }
+.layout__marca-texto { display: flex; flex-direction: column; line-height: 1.1; }
+.layout__marca-texto small { font-size: var(--texto-xs); font-weight: var(--peso-medio); color: var(--azul-200); }
 .layout__marca--lateral { margin: 0 var(--esp-3) var(--esp-6); }
 .layout__contenido { flex: 1; min-width: 0; padding: var(--esp-8); max-width: var(--ancho-contenido); }
 
