@@ -16,6 +16,7 @@ import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
+import { useRegistroBD } from '../../hooks/useRegistroBD.js'
 import { descargarCSV } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 
@@ -59,6 +60,7 @@ export default function Genetico() {
   const [parametros, setParametros] = useState(PARAMETROS_AG_INICIALES)
   const { cargando, error, ejecutar } = usePeticion()
   const { notificar } = useNotificaciones()
+  const registrarEnBD = useRegistroBD()
   const res = resultados.genetico
   const optimo = resultados.exacto?.costo_total
   const gap = res && optimo ? ((res.costo_total - optimo) / optimo) * 100 : null
@@ -68,6 +70,7 @@ export default function Genetico() {
     if (r) {
       guardarResultado('genetico', { ...r, parametros })
       notificar(`AG terminado: mejor costo ${moneda(r.costo_total)}`)
+      registrarEnBD(r, { parametros_algoritmo: parametros })
     }
   }
 

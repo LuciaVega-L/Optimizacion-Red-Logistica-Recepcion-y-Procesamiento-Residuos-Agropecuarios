@@ -19,7 +19,10 @@ export async function peticion(ruta, { metodo = 'GET', cuerpo } = {}) {
       detalle = typeof json.detail === 'string' ? json.detail
         : Array.isArray(json.detail) ? json.detail.map((d) => d.msg).join(' ') : detalle
     } catch { /* texto plano */ }
-    throw new Error(`Error ${resp.status}: ${detalle}`)
+    const error = new Error(`Error ${resp.status}: ${detalle}`)
+    error.status = resp.status   // p. ej. 503 = base de datos inactiva, 409 = nombre repetido
+    error.detalle = detalle
+    throw error
   }
   return resp.json()
 }

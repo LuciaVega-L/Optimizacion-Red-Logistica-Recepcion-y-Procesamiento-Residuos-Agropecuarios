@@ -190,7 +190,24 @@ Ejemplo de cuerpo para `POST /resultados`:
 
 ## Uso desde la Web UI (React)
 
-`frontend/src/api/historial.js` trae las funciones listas:
+Con `FUENTE_DATOS=bd` la interfaz guarda sola en la base:
+
+| Página | Qué guarda o muestra |
+|---|---|
+| Parametrización | Tarjeta **Guardar en la base de datos**: guarda la red editada como escenario (pide confirmar si el nombre ya existe; el escenario base no se puede reemplazar). |
+| Modelo exacto / Algoritmo genético | Cada ejecución se guarda en `resultados` (costo, tiempo, matriz de flujos, precios sombra, historial de fitness y parámetros del AG). |
+| Comparativo | «Comparar red actual» guarda primero el exacto y luego el AG (así la base calcula el gap). La tarjeta **Historial en la base de datos** muestra el último Exacto vs. Genético y las ejecuciones recientes. |
+
+Los resultados solo se guardan cuando la red en pantalla es **la misma** que se cargó o
+guardó por última vez: el backend valida la matriz de flujos contra la red guardada del
+escenario. Si la red tiene cambios sin guardar, la interfaz avisa y no registra la ejecución
+hasta que se guarde como escenario. Sensibilidad y escalabilidad no se guardan (usan redes
+modificadas o sintéticas que no corresponden a un escenario). Con `FUENTE_DATOS=json` no se
+guarda nada y no aparecen avisos.
+
+La lógica está en `context/RedContext.jsx` (`guardarRed`, `registrarSolucion`, `sinGuardar`)
+y en los hooks `useRegistroBD` y `useHistorialBD`. Por debajo usan
+`frontend/src/api/historial.js`, que trae las funciones listas:
 
 ```js
 import { resolverExacto } from '../api/exacto.js'
