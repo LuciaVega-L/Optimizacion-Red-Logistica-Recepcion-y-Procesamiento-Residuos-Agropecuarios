@@ -1,7 +1,20 @@
-"""Pruebas del módulo genetico. TODO: implementar cuando el módulo esté listo."""
-import pytest
+"""Pruebas del módulo genético."""
+from app.schemas.red import ParametrosAG
+from app.services.exacto import solver
+from app.services.genetico import algoritmo
 
 
-@pytest.mark.skip(reason="Módulo genetico pendiente de implementación")
 def test_resuelve_problema_pequeno(problema_pequeno):
-    ...
+    res = algoritmo.ejecutar(problema_pequeno, ParametrosAG(poblacion=30, generaciones=40, semilla=1))
+    exacto = solver.resolver(problema_pequeno)
+    assert res.factible
+    assert res.costo_total >= exacto.costo_total - 1e-6
+    for i, fila in enumerate(res.asignacion):
+        assert abs(sum(fila) - problema_pequeno.oferta[i]) < 1e-3
+
+
+def test_devuelve_historial_de_convergencia(problema_pequeno):
+    """Un valor por generación, y el mejor costo nunca empeora (elitismo)."""
+    res = algoritmo.ejecutar(problema_pequeno, ParametrosAG(poblacion=20, generaciones=25, semilla=3))
+    assert len(res.historial_fitness) == 25
+    assert all(b <= a + 1e-6 for a, b in zip(res.historial_fitness, res.historial_fitness[1:]))
