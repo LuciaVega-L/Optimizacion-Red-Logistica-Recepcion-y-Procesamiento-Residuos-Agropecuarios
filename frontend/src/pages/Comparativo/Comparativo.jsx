@@ -16,9 +16,13 @@ import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaComparativa from '../../components/graficas/GraficaComparativa.jsx'
 import { millones } from '../../components/graficas/registro.js'
+import HistorialBD from '../../components/historial/HistorialBD.jsx'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
+import { useRed } from '../../context/RedContext.jsx'
+import { useHistorialBD } from '../../hooks/useHistorialBD.js'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
+import { useRegistroBD } from '../../hooks/useRegistroBD.js'
 import { descargarCSV, exportarPDF } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 import { FormularioAG, PARAMETROS_AG_INICIALES } from '../Genetico/Genetico.jsx'
@@ -36,17 +40,31 @@ export default function Comparativo() {
   const escala = usePeticion()
   const [errorAg, setErrorAg] = useState(null)
   const { notificar } = useNotificaciones()
+  const { bdActiva, escenario, sinGuardar } = useRed()
+  const historialBD = useHistorialBD(escenario, bdActiva)
+  const registrarEnBD = useRegistroBD()
   const { exacto, genetico, sensibilidad, escalabilidad } = resultados
 
-  const compararActual = () => actual.ejecutar(async () => {
-    setErrorAg(null)
-    guardarResultado('exacto', await resolverExacto(problema))
-    try {
-      guardarResultado('genetico', { ...(await resolverGenetico(problema, parametros)), parametros })
-    } catch (e) { setErrorAg(e.message) }
-    notificar('Comparación de la red actual lista')
-    return true
-  })
+  const compararActual = async () => {
+    let ex = null
+    let ag = null
+    const ok = await actual.ejecutar(async () => {
+      setErrorAg(null)
+      ex = await resolverExacto(problema)
+      guardarResultado('exacto', ex)
+      try {
+        ag = await resolverGenetico(problema, parametros)
+        guardarResultado('genetico', { ...ag, parametros })
+      } catch (e) { setErrorAg(e.message) }
+      notificar('Comparación de la red actual lista')
+      return true
+    })
+    if (!ok) return
+    // Primero el exacto: la base calcula el gap del AG contra el último exacto del escenario.
+    const r = await registrarEnBD(ex)
+    if (ag && r.estado === 'guardado') await registrarEnBD(ag, { parametros_algoritmo: parametros })
+    if (r.estado === 'guardado') historialBD.recargar()
+  }
 
   const compararEscala = async () => {
     const lista = semillas.split(',').map((s) => Number(s.trim())).filter(Number.isFinite)
@@ -135,6 +153,8 @@ export default function Comparativo() {
           </>
         )}
       </Tarjeta>
+
+      {bdActiva && <HistorialBD escenario={escenario} sinGuardar={sinGuardar} {...historialBD} />}
 
       <Tarjeta titulo="Frente a los escenarios de sensibilidad">
         {!sensConAg && (

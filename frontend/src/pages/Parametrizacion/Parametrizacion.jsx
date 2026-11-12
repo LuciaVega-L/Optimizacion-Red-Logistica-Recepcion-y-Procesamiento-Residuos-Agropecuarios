@@ -34,16 +34,44 @@ const COLS_PLANTAS = [
 ]
 
 export default function Parametrizacion() {
-  const { config, cargando, error, errores, problema, balance, actualizarConfig, cargarEscenario } = useRed()
+  const { config, cargando, error, errores, problema, balance, actualizarConfig, cargarEscenario,
+    bdActiva, escenario, sinGuardar, guardarRed } = useRed()
   const [escenarios, setEscenarios] = useState([])
-  const [seleccion, setSeleccion] = useState('dataConfig')
+  const [seleccion, setSeleccion] = useState(escenario ?? 'dataConfig')
   const [errorLista, setErrorLista] = useState(false)
   const [cargandoEscenario, setCargandoEscenario] = useState(false)
+  const [nombreNuevo, setNombreNuevo] = useState('')
+  const [descripcion, setDescripcion] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [errorGuardar, setErrorGuardar] = useState(null)
   const { notificar } = useNotificaciones()
 
-  useEffect(() => {
-    listarEscenarios().then(setEscenarios).catch(() => { setEscenarios([]); setErrorLista(true) })
-  }, [])
+  const recargarLista = () =>
+    listarEscenarios().then((l) => { setEscenarios(l); setErrorLista(false) })
+      .catch(() => { setEscenarios([]); setErrorLista(true) })
+  useEffect(() => { recargarLista() }, [])
+
+  const esBase = (nombre) => escenarios.some((e) => typeof e === 'object' && e.nombre === nombre && e.es_base)
+
+  const guardar = async () => {
+    const nombre = nombreNuevo.trim()
+    if (!nombre) return
+    setGuardando(true); setErrorGuardar(null)
+    try {
+      try {
+        await guardarRed({ nombre, descripcion })
+      } catch (e) {
+        if (e.status !== 409) throw e
+        if (esBase(nombre)) throw new Error(`«${nombre}» es el escenario base y no se puede reemplazar. Usa otro nombre.`)
+        if (!window.confirm(`Ya existe el escenario «${nombre}». ¿Reemplazar su red por la actual?\n\n`
+          + 'Los resultados que ya tenía guardados se conservan, pero se calcularon con la red anterior.')) return
+        await guardarRed({ nombre, descripcion, reemplazar: true })
+      }
+      notificar(`Red guardada en la base de datos como «${nombre}»`)
+      setSeleccion(nombre); setNombreNuevo(''); setDescripcion('')
+      recargarLista()
+    } catch (e) { setErrorGuardar(e.message) } finally { setGuardando(false) }
+  }
 
   const cargar = async () => {
     if (!window.confirm('Se reemplazarán los cambios actuales por el escenario seleccionado. ¿Continuar?')) return
@@ -141,6 +169,11 @@ export default function Parametrizacion() {
             <Boton variante="secundario" onClick={cargar} cargando={cargandoEscenario}>Cargar</Boton>
           </div>
           {errorLista && <p className="texto-suave">No se pudo obtener la lista del servidor; solo está el caso base.</p>}
+          {escenario && (
+            <p className="texto-suave">
+              En pantalla: <strong>{escenario}</strong>{sinGuardar ? ' · con cambios sin guardar' : ' · sin cambios'}
+            </p>
+          )}
         </Tarjeta>
         <Tarjeta titulo="Costo de transporte">
           <label className="campo">COP por km·tonelada
@@ -153,6 +186,31 @@ export default function Parametrizacion() {
           <p className="texto-suave nota">c<sub>ij</sub> = d<sub>ij</sub> × costo km·t + costo operativo<sub>j</sub></p>
         </Tarjeta>
       </div>
+
+      {bdActiva && (
+        <Tarjeta titulo="Guardar en la base de datos">
+          {sinGuardar && (
+            <Aviso tipo="alerta" titulo="Cambios sin guardar">
+              Los resultados del modelo exacto y del AG solo se guardan en la base cuando la red coincide con un
+              escenario guardado. Guarda la red con un nombre nuevo para registrar sus ejecuciones.
+            </Aviso>
+          )}
+          <Aviso tipo="error" titulo="No se pudo guardar el escenario" mensajes={errorGuardar ? [errorGuardar] : []} />
+          <div className="formulario formulario--linea">
+            <label className="campo">Nombre del escenario
+              <input value={nombreNuevo} onChange={(e) => setNombreNuevo(e.target.value)} disabled={guardando}
+                placeholder="p. ej. Costos +10 %" maxLength={120} />
+            </label>
+            <label className="campo">Descripción (opcional)
+              <input value={descripcion} onChange={(e) => setDescripcion(e.target.value)} disabled={guardando} />
+            </label>
+            <Boton onClick={guardar} cargando={guardando} disabled={!nombreNuevo.trim() || errores.length > 0}
+              title={errores.length ? 'Corrige los datos marcados antes de guardar' : undefined}>
+              Guardar escenario
+            </Boton>
+          </div>
+        </Tarjeta>
+      )}
 
       <Tarjeta titulo={`Agroempresas (${config.agroempresas.length})`} acciones={
         <Boton variante="secundario" className="boton--mini" onClick={agregarEmpresa}><Icono nombre="mas" tamano={16} />Agregar</Boton>}>

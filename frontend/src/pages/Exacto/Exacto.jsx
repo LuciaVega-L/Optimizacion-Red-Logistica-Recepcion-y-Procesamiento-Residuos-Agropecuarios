@@ -15,6 +15,7 @@ import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
 import { useProblema } from '../../hooks/useProblema.js'
+import { useRegistroBD } from '../../hooks/useRegistroBD.js'
 import { descargarCSV } from '../../utils/exportar.js'
 import { moneda, numero, segundos } from '../../utils/formato.js'
 
@@ -22,6 +23,7 @@ export default function Exacto() {
   const { problema, errores, resultados, guardarResultado } = useProblema()
   const { cargando, error, ejecutar } = usePeticion()
   const { notificar } = useNotificaciones()
+  const registrarEnBD = useRegistroBD()
   const res = resultados.exacto
 
   const resolver = async () => {
@@ -29,6 +31,7 @@ export default function Exacto() {
     if (r) {
       guardarResultado('exacto', r)
       notificar(`Solución óptima encontrada: ${moneda(r.costo_total)} por semana`)
+      registrarEnBD(r)
     }
   }
 
