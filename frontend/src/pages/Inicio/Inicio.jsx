@@ -6,7 +6,7 @@ import EncabezadoPagina from '../../components/comunes/EncabezadoPagina.jsx'
 import { EsqueletoGrafica, EsqueletoKpis, EsqueletoTarjetas } from '../../components/comunes/Esqueleto.jsx'
 import Icono from '../../components/comunes/Icono.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
-import GrafoRed from '../../components/grafo/GrafoRed.jsx'
+import VistaRed from '../../components/grafo/VistaRed.jsx'
 import { useRed } from '../../context/RedContext.jsx'
 import { moneda, numero } from '../../utils/formato.js'
 
@@ -70,9 +70,7 @@ export default function Inicio() {
       </nav>
 
       {problema && (
-        <Tarjeta titulo="Grafo de la red">
-          <GrafoRed fuentes={problema.fuentes} plantas={problema.plantas} alto={420} />
-        </Tarjeta>
+        <VistaRed titulo="Red logística" fuentes={problema.fuentes} plantas={problema.plantas} alto={420} />
       )}
     </section>
   )
