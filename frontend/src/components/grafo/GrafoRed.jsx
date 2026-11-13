@@ -3,10 +3,13 @@
 // con grosor proporcional a las toneladas.
 import { useEffect, useRef } from 'react'
 import { Network } from 'vis-network/standalone'
+import { useRed } from '../../context/RedContext.jsx'
 import { numero } from '../../utils/formato.js'
+import { rutaCerrada } from '../../utils/red.js'
 
 export default function GrafoRed({ fuentes, plantas, asignacion, ficticio, alto = 460 }) {
   const ref = useRef(null)
+  const { config } = useRed()
 
   useEffect(() => {
     if (!ref.current) return undefined
@@ -21,6 +24,7 @@ export default function GrafoRed({ fuentes, plantas, asignacion, ficticio, alto 
     fuentes.forEach((f, i) => plantas.forEach((p, j) => {
       const x = asignacion?.[i]?.[j] ?? 0
       if (asignacion && x <= 1e-6) return
+      if (!asignacion && config && rutaCerrada(config, f, p)) return   // ruta deshabilitada
       arcos.push({ from: `f:${f}`, to: `p:${p}`, arrows: 'to',
         width: asignacion ? 1 + 7 * (x / maximo) : 0.5,
         label: asignacion ? `${numero(x, 1)} t` : undefined,
@@ -38,7 +42,7 @@ export default function GrafoRed({ fuentes, plantas, asignacion, ficticio, alto 
     })
     red.fit()
     return () => red.destroy()
-  }, [fuentes, plantas, asignacion, ficticio])
+  }, [fuentes, plantas, asignacion, ficticio, config])
 
   const descripcion = asignacion
     ? `Grafo de flujos: ${fuentes.length} agroempresas envían residuos a ${plantas.length} plantas. El detalle está en la tabla de asignación.`

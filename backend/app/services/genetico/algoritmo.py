@@ -192,6 +192,11 @@ def _datos_desde_problema(problema) -> dict:
         "matriz_costos": [[float(c) for c in fila] for fila in b.costos],
         "n_real": b.n_real,
         "m_real": b.m_real,
+        "prohibidas": sorted(b.cerradas),
+        # λ de los datos (dataConfig "penalizaciones"); sin ellos, fitness.py usa el mayor c_ij
+        "penalizaciones": {k: float(v) for k, v in (("factorPlanta", problema.penalizacion_oferta),
+                                                    ("factorDemanda", problema.penalizacion_capacidad))
+                           if v is not None},
     }
 
 

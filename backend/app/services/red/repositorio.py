@@ -90,4 +90,7 @@ def a_problema(config: dict, incluir_costo_operativo: bool = True) -> ProblemaTr
         distancias=[[distancias[e["id"]][p["id"]] for p in plantas] for e in empresas],
         costo_km_ton=config["parametros_globales"]["costo_transporte_km_ton"],
         costo_operativo=[p["costo_operativo_ton"] if incluir_costo_operativo else 0 for p in plantas],
+        rutas_deshabilitadas=[tuple(r) for r in config.get("rutas_deshabilitadas") or []],
+        penalizacion_oferta=(config.get("penalizaciones") or {}).get("factorPlanta"),
+        penalizacion_capacidad=(config.get("penalizaciones") or {}).get("factorDemanda"),
     )

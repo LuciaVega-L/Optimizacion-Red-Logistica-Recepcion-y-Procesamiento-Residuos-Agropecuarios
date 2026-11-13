@@ -7,6 +7,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useRed } from '../../context/RedContext.jsx'
 import { numero } from '../../utils/formato.js'
+import { rutaCerrada } from '../../utils/red.js'
 import { ubicar } from '../../utils/ubicaciones.js'
 
 const COLOR_FUENTE = '#15803d'
@@ -62,6 +63,7 @@ export default function MapaRed({ fuentes, plantas, asignacion, ficticio, alto =
       if (!a || !b) return
       const x = asignacion?.[i]?.[j] ?? 0
       if (asignacion && x <= 1e-6) return
+      if (!asignacion && config && rutaCerrada(config, f, p)) return   // ruta deshabilitada
       const km = config?.matriz_distancias_km?.[f]?.[p]
       const linea = L.polyline([a, b], asignacion
         ? { color: COLOR_FLUJO, weight: 2 + 8 * (x / maximo), opacity: 0.9 }

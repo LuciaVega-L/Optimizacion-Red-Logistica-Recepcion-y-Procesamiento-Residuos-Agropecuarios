@@ -31,6 +31,7 @@ class EvaluadorFitness:
         penalizaciones = datosRed.get("penalizaciones", {})
         self.lambdaOferta = float(penalizaciones.get("factorPlanta", porDefecto))
         self.lambdaDemanda = float(penalizaciones.get("factorDemanda", porDefecto))
+        self.prohibidas = {tuple(c) for c in datosRed.get("prohibidas", [])}
 
     # ---------- costo de rutas ----------
     def costoUnitario(self, i: int, j: int) -> float:
@@ -86,11 +87,15 @@ class EvaluadorFitness:
         penalizacionOferta = self.lambdaOferta * sum(e ** 2 for e in exO)
         penalizacionDemanda = self.lambdaDemanda * sum(e ** 2 for e in exD)
 
-        costoTotalZ = costoTransporte + costoOperativo + penalizacionOferta + penalizacionDemanda
+        # Toneladas por rutas deshabilitadas: la reparación las deja en 0; si quedara algo, se penaliza
+        flujoProhibido = sum(float(cromosoma[i][j]) for i, j in self.prohibidas)
+        penalizacionRutas = self.lambdaDemanda * flujoProhibido ** 2
+
+        costoTotalZ = costoTransporte + costoOperativo + penalizacionOferta + penalizacionDemanda + penalizacionRutas
         fitness = 1.0 / (1.0 + costoTotalZ)
         # Factible = ninguna restricción excedida (más allá de ruido numérico).
         # Se mide en toneladas: el umbral sobre la penalización dependía de λ y de la escala de Z.
-        esFactible = (sum(exO) <= TOL_TON) and (sum(exD) <= TOL_TON)
+        esFactible = (sum(exO) <= TOL_TON) and (sum(exD) <= TOL_TON) and flujoProhibido <= TOL_TON
 
         return {
             "fitness": round(fitness, 12),

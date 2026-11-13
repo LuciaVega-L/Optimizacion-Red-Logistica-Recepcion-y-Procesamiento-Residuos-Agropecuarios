@@ -1,5 +1,7 @@
 """Comparativo por tamaño de red (HU5): exacto vs. AG en redes de 10, 20, 50 y 100 fuentes."""
+import os
 import statistics
+from concurrent.futures import ProcessPoolExecutor
 
 from app.schemas.red import ParametrosAG
 from app.services.comparativo.metricas import gap_porcentual
@@ -9,6 +11,21 @@ from app.services.red.generador import generar_red
 from app.services.sensibilidad.analisis import _ejecutar_ag
 
 TAMANOS_POR_DEFECTO = [(10, 4), (20, 4), (50, 6), (100, 10)]
+
+
+def _correr_semillas(problema, parametros_ag: ParametrosAG | None, semillas: list[int]) -> list:
+    """Corre el AG con cada semilla. Las corridas son independientes, así que van en procesos
+    paralelos (el AG es Python puro: los hilos no lo acelerarían). Si no se pueden crear
+    procesos, se corren una tras otra. Devuelve [(resultado | None, error | None), ...]."""
+    lista = [(parametros_ag or ParametrosAG()).model_copy(update={"semilla": s}) for s in semillas]
+    trabajadores = min(len(lista), os.cpu_count() or 1)
+    if trabajadores > 1:
+        try:
+            with ProcessPoolExecutor(max_workers=trabajadores) as pool:
+                return list(pool.map(_ejecutar_ag, [problema] * len(lista), lista))
+        except Exception:  # noqa: BLE001 - sin multiproceso disponible: se sigue en serie
+            pass
+    return [_ejecutar_ag(problema, params) for params in lista]
 
 
 def comparar_tamanos(tamanos=None, parametros_ag: ParametrosAG | None = None,
@@ -26,9 +43,7 @@ def comparar_tamanos(tamanos=None, parametros_ag: ParametrosAG | None = None,
                 "costo_exacto": exacto.costo_total, "tiempo_exacto_s": exacto.tiempo_s}
         if incluir_ag:
             corridas, errores = [], []
-            for s in semillas_ag:
-                params = (parametros_ag or ParametrosAG()).model_copy(update={"semilla": s})
-                ag, error = _ejecutar_ag(problema, params)
+            for ag, error in _correr_semillas(problema, parametros_ag, semillas_ag):
                 (corridas.append(ag) if ag else errores.append(error))
             if corridas:
                 gaps = [gap_porcentual(c["costo_total"], exacto.costo_total) for c in corridas]

@@ -21,6 +21,11 @@ class FabricaCromosomas:
         self.numPlantas = len(self.plantas)
         self.ofertas = [float(e.get("oferta_ton_sem", 0.0)) for e in self.agroempresas]
         self.capacidades = [float(p.get("capacidad_maxima_ton_sem", 0.0)) for p in self.plantas]
+        # Rutas deshabilitadas (i, j): nunca reciben toneladas
+        self.prohibidas = {tuple(c) for c in datosRed.get("prohibidas", [])}
+
+    def _abierta(self, i: int, j: int) -> bool:
+        return (i, j) not in self.prohibidas
 
     # ---------- utilidades ----------
     @staticmethod
@@ -37,10 +42,14 @@ class FabricaCromosomas:
             return float(self.matrizCostos[i][j])
         return self._distancia(i, j)
 
-    def _escalarFila(self, pesos: list, oferta: float) -> list:
+    def _escalarFila(self, pesos: list, oferta: float, i: int | None = None) -> list:
+        """Reparte la oferta de la fila i en proporción a los pesos, sin usar rutas cerradas."""
+        if i is not None and self.prohibidas:
+            pesos = [p if self._abierta(i, j) else 0.0 for j, p in enumerate(pesos)]
         total = sum(pesos)
         if total <= 0.0:
-            return [oferta / len(pesos)] * len(pesos)
+            abiertas = [j for j in range(len(pesos)) if i is None or self._abierta(i, j)] or list(range(len(pesos)))
+            return [oferta / len(abiertas) if j in abiertas else 0.0 for j in range(len(pesos))]
         return [oferta * p / total for p in pesos]
 
     def _repararCapacidad(self, cromosoma: list, iteraciones: int = 10) -> None:
@@ -56,8 +65,16 @@ class FabricaCromosomas:
             retirado = [0.0] * self.numEmpresas
             for j in range(self.numPlantas):
                 if excesos[j] > 1e-9 and cargas[j] > 0.0:
-                    f = excesos[j] / cargas[j]
-                    for i in range(self.numEmpresas):
+                    # Solo se retira de las empresas que tienen otra ruta abierta: a una empresa
+                    # cuya única salida es j habría que devolverle lo retirado a la misma planta.
+                    # Sin rutas cerradas son todas, y f = exceso / carga como siempre.
+                    movibles = [i for i in range(self.numEmpresas) if cromosoma[i][j] > 0.0
+                                and any(k != j and self._abierta(i, k) for k in range(self.numPlantas))]
+                    cargaMovible = sum(cromosoma[i][j] for i in movibles)
+                    if cargaMovible <= 0.0:
+                        movibles, cargaMovible = range(self.numEmpresas), cargas[j]
+                    f = min(1.0, excesos[j] / cargaMovible)
+                    for i in movibles:
                         q = cromosoma[i][j] * f
                         cromosoma[i][j] -= q
                         retirado[i] += q
@@ -69,7 +86,8 @@ class FabricaCromosomas:
                 restante = retirado[i]
                 if restante <= 1e-12:
                     continue
-                destinos = sorted((j for j in range(self.numPlantas) if holguras[j] > 1e-12),
+                destinos = sorted((j for j in range(self.numPlantas)
+                                   if holguras[j] > 1e-12 and self._abierta(i, j)),
                                   key=lambda j: self._costoRuta(i, j))
                 for j in destinos:
                     q = min(restante, holguras[j])
@@ -79,21 +97,22 @@ class FabricaCromosomas:
                     if restante <= 1e-12:
                         break
                 if restante > 1e-12:   # sin holgura global (red no balanceada): lo absorbe la penalización
-                    jBarata = min(range(self.numPlantas), key=lambda j: self._costoRuta(i, j))
+                    abiertas = [j for j in range(self.numPlantas) if self._abierta(i, j)] or range(self.numPlantas)
+                    jBarata = min(abiertas, key=lambda j: self._costoRuta(i, j))
                     cromosoma[i][jBarata] += restante
 
     def reparar(self, cromosoma: list) -> list:
         """No negatividad, filas = oferta y capacidades respetadas."""
         for i in range(self.numEmpresas):
             fila = [max(0.0, x) for x in cromosoma[i]]
-            cromosoma[i] = self._escalarFila(fila, self.ofertas[i])
+            cromosoma[i] = self._escalarFila(fila, self.ofertas[i], i)
         self._repararCapacidad(cromosoma)
         return cromosoma
 
     # ---------- generadores de individuos ----------
     def crearAleatorio(self) -> list:
         return [
-            self._escalarFila([self.rng.random() for _ in range(self.numPlantas)], self.ofertas[i])
+            self._escalarFila([self.rng.random() for _ in range(self.numPlantas)], self.ofertas[i], i)
             for i in range(self.numEmpresas)
         ]
 
@@ -108,7 +127,7 @@ class FabricaCromosomas:
             pesos = [1.0 / ((c / ref) ** exponente) if c > 0 else 1.0 for c in costos] \
                 if self.matrizCostos else \
                 [1.0 / ((c + 1.0) ** exponente) for c in costos]
-            cromosoma.append(self._escalarFila(pesos, self.ofertas[i]))
+            cromosoma.append(self._escalarFila(pesos, self.ofertas[i], i))
         return cromosoma
 
     def crearPoblacion(self, tamano: int, proporcionSesgada: float = 0.3) -> list:
