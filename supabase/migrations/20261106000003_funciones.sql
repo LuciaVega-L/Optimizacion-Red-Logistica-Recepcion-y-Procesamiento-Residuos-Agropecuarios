@@ -196,8 +196,8 @@ as $$
 declare
     v_id        uuid;
     v_cu        numeric := coalesce((p_config #>> '{parametros_globales,costo_transporte_km_ton}')::numeric, 1200);
-    v_pen_o     numeric := coalesce((p_config #>> '{penalizaciones,factorPlanta}')::numeric, 1000);
-    v_pen_c     numeric := coalesce((p_config #>> '{penalizaciones,factorDemanda}')::numeric, 1000);
+    v_pen_o     numeric := coalesce((p_config #>> '{penalizaciones,factorPlanta}')::numeric, 100000000);
+    v_pen_c     numeric := coalesce((p_config #>> '{penalizaciones,factorDemanda}')::numeric, 100000000);
     v_desc      text    := coalesce(p_descripcion, p_config #>> '{_meta,descripcion}');
     v_faltante  record;
 begin
