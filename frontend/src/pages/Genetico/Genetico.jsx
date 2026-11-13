@@ -1,7 +1,7 @@
-// HU3 — Configuración y ejecución del Algoritmo Genético (la lógica del AG es del Rol 3).
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { resolverGenetico } from '../../api/genetico.js'
+import { guardarSolucion as guardarSolucionBD } from '../../api/historial.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'
@@ -19,9 +19,11 @@ import { useProblema } from '../../hooks/useProblema.js'
 import { descargarCSV } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 
+
 export const PARAMETROS_AG_INICIALES = {
   poblacion: 100, generaciones: 500, tasa_cruce: 0.8, tasa_mutacion: 0.05,
   seleccion: 'torneo', tipo_cruce: 'un_punto', semilla: 1,
+  tam_torneo: 3, num_elites: 2, paciencia: 0,
 }
 
 export function FormularioAG({ valores, onCambio, deshabilitado = false }) {
@@ -50,24 +52,51 @@ export function FormularioAG({ valores, onCambio, deshabilitado = false }) {
         </select>
       </label>
       {campo('semilla', 'Semilla', { step: 1, placeholder: 'Aleatoria' })}
+      {campo('tam_torneo', 'Tamaño de torneo', { min: 2, step: 1 })}
+      {campo('num_elites', 'Élites', { min: 0, step: 1 })}
+      {campo('paciencia', 'Paciencia (0 = sin parada)', { min: 0, step: 10 })}
     </div>
   )
 }
 
+const curvaDeConvergencia = (res) => {
+  if (Array.isArray(res?.historial_fitness) && res.historial_fitness.length) return res.historial_fitness
+  if (Array.isArray(res?.historial) && res.historial.length) return res.historial.map((h) => h.mejorCostoZ)
+  return []
+}
+
 export default function Genetico() {
-  const { problema, errores, resultados, guardarResultado } = useProblema()
+  const { problema, errores, resultados, guardarResultado, escenario } = useProblema()
   const [parametros, setParametros] = useState(PARAMETROS_AG_INICIALES)
   const { cargando, error, ejecutar } = usePeticion()
   const { notificar } = useNotificaciones()
   const res = resultados.genetico
   const optimo = resultados.exacto?.costo_total
   const gap = res && optimo ? ((res.costo_total - optimo) / optimo) * 100 : null
+  const curva = curvaDeConvergencia(res)
 
   const correr = async () => {
     const r = await ejecutar(() => resolverGenetico(problema, parametros))
-    if (r) {
-      guardarResultado('genetico', { ...r, parametros })
-      notificar(`AG terminado: mejor costo ${moneda(r.costo_total)}`)
+    if (!r) return
+
+    guardarResultado('genetico', { ...r, parametros })   
+    notificar(`AG terminado: mejor costo ${moneda(r.costo_total)}`)
+
+    if (curvaDeConvergencia(r).length === 0) {
+      notificar('El backend no devolvió el historial de convergencia (revisa ResultadoGenetico)')
+    }
+
+    const nombreEscenario = escenario ?? problema?.escenario ?? problema?.nombre
+    if (!nombreEscenario) return
+    try {
+      await guardarSolucionBD(
+        nombreEscenario,
+        { ...r, metodo: 'Genético', historial_fitness: curvaDeConvergencia(r) },
+        { parametros_algoritmo: parametros },
+      )
+      notificar('Ejecución guardada en el historial')
+    } catch (e) {
+      notificar(`No se pudo guardar en el historial: ${e?.message ?? e}`)
     }
   }
 
@@ -111,10 +140,17 @@ export default function Genetico() {
               detalle={gap === null ? <Link to="/exacto">Resuelve el exacto para calcularlo</Link> : undefined} />
             <Tarjeta titulo="Factible" valor={res.factible ? 'Sí' : 'No'} tono={res.factible ? 'ok' : 'error'} />
             <Tarjeta titulo="Tiempo" valor={segundos(res.tiempo_s)} />
+            {res.generaciones_ejecutadas != null && (
+              <Tarjeta titulo="Generaciones" valor={numero(res.generaciones_ejecutadas, 0)}
+                detalle={res.generaciones_ejecutadas < (parametros.generaciones ?? 0) ? 'Parada anticipada' : undefined} />
+            )}
           </div>
           <Tarjeta titulo="Convergencia">
-            <GraficaConvergencia historial={res.historial_fitness} optimo={optimo ?? null}
-              etiqueta="Mejor costo Z por generación (COP/sem)" />
+            {curva.length > 0
+              ? <GraficaConvergencia historial={curva} optimo={optimo ?? null}
+                  etiqueta="Mejor costo Z por generación (COP/sem)" />
+              : <Aviso tipo="error" titulo="Sin historial de convergencia"
+                  mensajes={['La respuesta del AG no incluyó historial_fitness ni historial.']} />}
           </Tarjeta>
           <Tarjeta titulo="Mejor asignación (t/sem)">
             <TablaMatriz filas={problema.fuentes} columnas={problema.plantas} matriz={res.asignacion}

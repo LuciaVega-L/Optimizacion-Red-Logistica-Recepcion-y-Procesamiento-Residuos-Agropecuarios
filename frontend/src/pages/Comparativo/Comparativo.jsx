@@ -22,6 +22,7 @@ import { useProblema } from '../../hooks/useProblema.js'
 import { descargarCSV, exportarPDF } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 import { FormularioAG, PARAMETROS_AG_INICIALES } from '../Genetico/Genetico.jsx'
+import { guardarSolucion as guardarSolucionBD } from '../../api/historial.js'
 
 // 100×10 queda opcional: con los parámetros por defecto el AG tarda unos 2,5 min por semilla.
 const TAMANOS = [[10, 4], [20, 4], [50, 6]]
@@ -38,7 +39,7 @@ const duracion = (seg) => (seg < 60 ? `${Math.max(1, Math.round(seg))} s` : `${M
 const gap = (ag, ex) => (ag != null && ex ? ((ag - ex) / ex) * 100 : null)
 
 export default function Comparativo() {
-  const { problema, errores, resultados, guardarResultado } = useProblema()
+  const { problema, errores, resultados, guardarResultado,escenario } = useProblema()
   const [parametros, setParametros] = useState(PARAMETROS_AG_INICIALES)
   const [tamanos, setTamanos] = useState(TAMANOS)
   const [semillas, setSemillas] = useState('1, 2, 3')
@@ -49,15 +50,33 @@ export default function Comparativo() {
   const { notificar } = useNotificaciones()
   const { exacto, genetico, sensibilidad, escalabilidad } = resultados
 
-  const compararActual = () => actual.ejecutar(async () => {
-    setErrorAg(null)
-    guardarResultado('exacto', await resolverExacto(problema))
-    try {
-      guardarResultado('genetico', { ...(await resolverGenetico(problema, parametros)), parametros })
-    } catch (e) { setErrorAg(e.message) }
-    notificar('Comparación de la red actual lista')
-    return true
-  })
+
+  const guardarEnHistorial = async (solucion, extra = {}) => {
+  const nombre = escenario ?? problema?.escenario ?? problema?.nombre
+  if (!nombre) return
+  try {
+    await guardarSolucionBD(nombre, solucion, extra)
+  } catch (e) {
+    notificar(`No se pudo guardar en el historial: ${e?.message ?? e}`)
+  }
+}
+
+const compararActual = () => actual.ejecutar(async () => {
+  setErrorAg(null)
+
+  const ex = await resolverExacto(problema)
+  guardarResultado('exacto', ex)
+  await guardarEnHistorial(ex)
+
+  try {
+    const ag = await resolverGenetico(problema, parametros)
+    guardarResultado('genetico', { ...ag, parametros })
+    await guardarEnHistorial(ag, { parametros_algoritmo: parametros })
+  } catch (e) { setErrorAg(e.message) }
+
+  notificar('Comparación de la red actual lista')
+  return true
+})
 
   const listaSemillas = semillas.split(',').map((s) => s.trim()).filter(Boolean).map(Number).filter(Number.isFinite)
   const estimado = estimarSegundos(tamanos, parametros, listaSemillas.length, incluirAg)
