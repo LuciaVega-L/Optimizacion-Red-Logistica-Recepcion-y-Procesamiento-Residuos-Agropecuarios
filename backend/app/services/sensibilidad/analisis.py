@@ -1,21 +1,4 @@
-"""Análisis de sensibilidad (HU4): precios sombra, rangos de base óptima y escenarios.
 
-Rangos (para la base óptima actual, un parámetro a la vez):
-
-* Costo de una ruta no básica: puede bajar hasta su costo reducido c̄_ij antes de entrar
-  a la base; puede subir sin límite.
-* Costo de una ruta básica: al quitar la celda del árbol base quedan dos componentes S y T.
-  Si c_ij sube δ, los costos reducidos de las rutas S→T bajan δ y los de T→S suben δ.
-  El rango es [c_ij − min c̄(T→S), c_ij + min c̄(S→T)].
-* Oferta de una agroempresa / capacidad de una planta: el cambio se compensa con el nodo
-  ficticio y el flujo se redistribuye por el camino del árbol entre ambos nodos. El rango
-  termina cuando algún flujo básico de ese camino llega a 0. Dentro del rango
-  ΔZ* = precio sombra × Δ.
-
-Escenarios: cada uno se resuelve con el modelo exacto (y opcionalmente con el AG). Se dice
-que "la base óptima se mantiene" si la base del caso base sigue siendo factible y óptima con
-los datos del escenario.
-"""
 import math
 
 from app.schemas.red import Escenario, ParametrosAG, ProblemaTransporte
