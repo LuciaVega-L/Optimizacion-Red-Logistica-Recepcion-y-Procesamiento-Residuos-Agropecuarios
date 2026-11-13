@@ -1,5 +1,11 @@
 """Configuración global leída desde variables de entorno (.env)."""
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# backend/.env, sin importar desde qué carpeta se arranque uvicorn
+# (p. ej. desde la raíz del repo con --app-dir backend, como en .claude/launch.json)
+ARCHIVO_ENV = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
@@ -14,7 +20,7 @@ class Settings(BaseSettings):
     database_password: str = ""   # opcional: contraseña aparte, sin tener que codificarla en la URL
 
     # ignora variables que sobren en el .env (p. ej. las de versiones anteriores)
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=ARCHIVO_ENV, extra="ignore")
 
     @property
     def usa_bd(self) -> bool:
