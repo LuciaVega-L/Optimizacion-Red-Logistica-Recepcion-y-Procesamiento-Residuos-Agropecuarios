@@ -1,15 +1,4 @@
-"""Consultas y almacenamiento en PostgreSQL (Supabase) con el ORM.
 
-Escenarios
-    listar_escenarios, historial_escenarios, cargar_escenario (formato dataConfig.json),
-    obtener_escenario, guardar_escenario, clonar_escenario, eliminar_escenario
-Resultados
-    guardar_resultado, guardar_solucion, listar_resultados, obtener_resultado,
-    historial_comparativo
-
-cargar_escenario() devuelve las mismas claves que dataConfig.json, así que
-repositorio.a_problema() y genetico.fitness.EvaluadorFitness funcionan sin cambios.
-"""
 import json
 import uuid
 from decimal import Decimal
@@ -45,34 +34,30 @@ def _escenario_por_nombre(s, nombre: str) -> Escenario:
     return esc
 
 
-# ================================================================ escenarios
+#  escenarios
 def listar_escenarios() -> list[str]:
     with sesion() as s:
         return list(s.scalars(select(Escenario.nombre).order_by(Escenario.nombre)))
 
 
 def historial_escenarios() -> list[dict]:
-    """Escenarios guardados (más recientes primero) con tamaño de la red, balance y nº de resultados."""
     with sesion() as s:
         filas = s.execute(text("select * from public.v_resumen_escenarios order by fecha desc"))
         return [_fila_a_dict(f) for f in filas]
 
 
 def cargar_escenario(nombre: str) -> dict:
-    """Escenario completo con el formato de dataConfig.json."""
     with sesion() as s:
         return s.scalar(text("select public.obtener_config_escenario(:n)"), {"n": nombre})
 
 
 def obtener_escenario(nombre: str) -> dict:
-    """Fila de la tabla escenarios: id, nombre, fecha y parametros_entrada (oferta, demanda, costos)."""
     with sesion() as s:
         return _escenario_por_nombre(s, nombre).a_dict()
 
 
 def guardar_escenario(nombre: str, config: dict, descripcion: str | None = None,
                       es_base: bool = False, reemplazar: bool = False) -> str:
-    """Crea (o con reemplazar=True sobrescribe) un escenario desde el formato dataConfig.json."""
     with sesion() as s:
         return str(s.scalar(
             text("select public.guardar_config_escenario(:n, cast(:c as jsonb), :d, :b, :r)"),
@@ -81,7 +66,6 @@ def guardar_escenario(nombre: str, config: dict, descripcion: str | None = None,
 
 def clonar_escenario(origen: str, nuevo: str, variaciones: dict | None = None,
                      descripcion: str | None = None) -> str:
-    """Copia un escenario sin modificar el original (HU4, HU8)."""
     with sesion() as s:
         return str(s.scalar(
             text("select public.clonar_escenario(:o, :n, cast(:v as jsonb), :d)"),
@@ -89,7 +73,6 @@ def clonar_escenario(origen: str, nuevo: str, variaciones: dict | None = None,
 
 
 def eliminar_escenario(nombre: str) -> bool:
-    """Borra el escenario con su red y sus resultados. Devuelve False si no existía."""
     with sesion() as s:
         esc = s.scalar(select(Escenario).where(Escenario.nombre == nombre))
         if esc is None:
@@ -98,7 +81,7 @@ def eliminar_escenario(nombre: str) -> bool:
         return True
 
 
-# ================================================================ resultados
+#resultados
 def guardar_resultado(
     escenario: str,
     algoritmo_utilizado: str,
@@ -115,13 +98,7 @@ def guardar_resultado(
     rangos_oferta: list[list[float]] | None = None,
     rangos_demanda: list[list[float]] | None = None,
 ) -> dict:
-    """Guarda una ejecución del sistema en la tabla resultados.
 
-    - algoritmo_utilizado: 'Exacto' o 'Genético' (también acepta 'exacto', 'genetico', 'ag').
-    - matriz_flujos: xᵢⱼ en el orden de agroempresas (filas) y plantas (columnas) del escenario.
-    - gap_desviacion lo calcula la base de datos contra el último resultado Exacto del escenario.
-    Devuelve el resultado guardado (con gap y desglose de costos ya calculados).
-    """
     with sesion() as s:
         esc = _escenario_por_nombre(s, escenario)
         res = Resultado(
@@ -166,10 +143,7 @@ def _agregar_duales(s, res, tipo, codigos, valores, rangos=None, holguras=None):
 
 
 def guardar_solucion(escenario: str, solucion: BaseModel, **extra: Any) -> dict:
-    """Atajo para guardar ResultadoExacto / ResultadoGenetico (schemas/resultados.py).
 
-    Convierte tiempo_s a milisegundos y metodo a algoritmo_utilizado.
-    """
     d = solucion.model_dump()
     return guardar_resultado(
         escenario=escenario,
@@ -187,7 +161,6 @@ def guardar_solucion(escenario: str, solucion: BaseModel, **extra: Any) -> dict:
 
 def listar_resultados(escenario: str | None = None, algoritmo: str | None = None,
                       limite: int = 50, incluir_matriz: bool = False) -> list[dict]:
-    """Historial de resultados, del más reciente al más antiguo."""
     with sesion() as s:
         consulta = select(Resultado).options(selectinload(Resultado.escenario))
         if escenario:
@@ -211,7 +184,6 @@ def obtener_resultado(id_resultado: str) -> dict | None:
 
 
 def historial_comparativo(escenario: str | None = None) -> list[dict]:
-    """Último Exacto vs. último Genético de cada escenario: costos, tiempos (ms) y gap (%)."""
     with sesion() as s:
         sql = "select * from public.v_historial_comparativo"
         params = {}

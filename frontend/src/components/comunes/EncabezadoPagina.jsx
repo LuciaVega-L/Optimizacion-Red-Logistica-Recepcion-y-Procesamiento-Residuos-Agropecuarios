@@ -1,5 +1,4 @@
-// Encabezado común de cada pestaña: título, una línea de contexto y las acciones.
-// La primera acción que se pase debe ser la principal (variante primario); el resto, secundarias.
+
 export default function EncabezadoPagina({ titulo, descripcion, children }) {
   return (
     <header className="encabezado">

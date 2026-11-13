@@ -1,5 +1,4 @@
-// Estado vacío: qué falta, por qué y la acción que lo resuelve.
-// tono: 'neutro' (aún no hay datos) | 'alerta' (no se puede continuar)
+
 import Icono from './Icono.jsx'
 
 export default function EstadoVacio({ titulo, descripcion, icono = 'vacio', tono = 'neutro', compacto = false, children }) {

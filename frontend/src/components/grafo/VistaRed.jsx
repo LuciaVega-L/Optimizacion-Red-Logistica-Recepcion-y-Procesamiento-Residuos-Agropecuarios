@@ -1,5 +1,4 @@
 // Tarjeta con la red en dos vistas: el grafo abstracto (vis-network) o el mapa real (Leaflet).
-// La vista elegida se recuerda en el navegador.
 import { useState } from 'react'
 import Tarjeta from '../comunes/Tarjeta.jsx'
 import GrafoRed from './GrafoRed.jsx'

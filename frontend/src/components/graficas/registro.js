@@ -5,7 +5,6 @@ import {
 Chart.register(BarElement, CategoryScale, Legend, LinearScale, LogarithmicScale, LineElement, PointElement, Tooltip)
 
 // Mismos valores que src/styles/tokens.css. Chart.js pinta en canvas y no lee variables CSS.
-// Exacto (azul oscuro) y AG (azul claro) se distinguen por luminosidad, no solo por tono.
 export const COLORES = { exacto: '#1e40af', genetico: '#60a5fa', neutro: '#94a3b8', negativo: '#b91c1c' }
 
 Chart.defaults.font.family = "'Inter', system-ui, sans-serif"

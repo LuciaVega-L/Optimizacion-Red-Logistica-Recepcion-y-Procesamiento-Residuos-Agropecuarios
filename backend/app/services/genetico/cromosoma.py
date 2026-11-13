@@ -2,13 +2,6 @@ import random
 
 
 class FabricaCromosomas:
-    """Cromosoma = matriz X (empresas x plantas) de toneladas/semana, con Σ_j x_ij = oferta_i.
-
-    Operador de reparación: (1) no negatividad y reescalado de filas a su oferta;
-    (2) reparación de capacidad: el exceso de una planta se reubica, fila por fila, en las
-    plantas con holgura (más baratas primero). Conserva Σ_j x_ij = oferta_i, y como en el
-    modelo balanceado Σ oferta = Σ capacidad siempre existe una solución factible.
-    """
 
     def __init__(self, datosRed: dict, generador: random.Random = None):
         self.agroempresas = datosRed.get("agroempresas", [])
@@ -53,13 +46,11 @@ class FabricaCromosomas:
                 return
             holguras = [max(0.0, self.capacidades[j] - cargas[j]) for j in range(self.numPlantas)]
 
-            # 1) retirar el exceso de cada planta saturada, proporcional a lo que aporta cada fila
+            # 1) retirar el exceso de cada planta saturada
             retirado = [0.0] * self.numEmpresas
             for j in range(self.numPlantas):
                 if excesos[j] > 1e-9 and cargas[j] > 0.0:
-                    # Solo se retira de las empresas que tienen otra ruta abierta: a una empresa
-                    # cuya única salida es j habría que devolverle lo retirado a la misma planta.
-                    # Sin rutas cerradas son todas, y f = exceso / carga como siempre.
+                    
                     movibles = [i for i in range(self.numEmpresas) if cromosoma[i][j] > 0.0
                                 and any(k != j and self._abierta(i, k) for k in range(self.numPlantas))]
                     cargaMovible = sum(cromosoma[i][j] for i in movibles)
@@ -109,7 +100,6 @@ class FabricaCromosomas:
         ]
 
     def crearSesgado(self) -> list:
-        """Reparte más hacia las plantas baratas/cercanas (peso ~ 1/(c+1)^k, k aleatorio)."""
         cromosoma = []
         for i in range(self.numEmpresas):
             exponente = self.rng.uniform(1.0, 4.0)

@@ -1,7 +1,4 @@
-// Contenedor visual para resultados/KPIs.
-// destacada: el dato principal de la pestaña (se ve primero y más grande).
-// tono: 'ok' | 'error' colorea el valor (p. ej. Factible: Sí / No).
-// acciones: botones pequeños alineados a la derecha del título.
+
 export default function Tarjeta({ titulo, valor, detalle, tono, destacada = false, acciones, children, className = '' }) {
   return (
     <section className={`tarjeta ${destacada ? 'tarjeta--destacada' : ''} ${className}`}>

@@ -1,4 +1,3 @@
-"""Pruebas del módulo genético."""
 from app.schemas.red import ParametrosAG
 from app.services.exacto import solver
 from app.services.genetico import algoritmo
@@ -14,8 +13,6 @@ def test_resuelve_problema_pequeno(problema_pequeno):
 
 
 def test_devuelve_historial_de_convergencia(problema_pequeno):
-    """Un valor por generación (de la 0, población inicial, a la última), el mejor costo nunca
-    empeora (elitismo) y el último punto de la curva es el costo de la solución devuelta."""
     res = algoritmo.ejecutar(problema_pequeno, ParametrosAG(poblacion=20, generaciones=25, semilla=3))
     assert len(res.historial_fitness) == 25 + 1
     assert all(b <= a + 1e-6 for a, b in zip(res.historial_fitness, res.historial_fitness[1:]))

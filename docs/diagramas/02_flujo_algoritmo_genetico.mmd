@@ -1,0 +1,62 @@
+---
+config:
+  theme: base
+  look: classic
+  fontFamily: "Arial, Helvetica, DejaVu Sans, sans-serif"
+  layout: elk
+  elk:
+    nodePlacementStrategy: BRANDES_KOEPF
+  flowchart:
+    curve: linear
+    nodeSpacing: 40
+    rankSpacing: 45
+    wrappingWidth: 320
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    background: "#ffffff"
+    primaryColor: "#ffffff"
+    primaryTextColor: "#000000"
+    primaryBorderColor: "#000000"
+    secondaryColor: "#ffffff"
+    tertiaryColor: "#ffffff"
+    lineColor: "#000000"
+    textColor: "#000000"
+    mainBkg: "#ffffff"
+    nodeBorder: "#000000"
+    clusterBkg: "#ffffff"
+    clusterBorder: "#000000"
+    edgeLabelBackground: "#ffffff"
+    actorBkg: "#ffffff"
+    actorBorder: "#000000"
+    actorTextColor: "#000000"
+    actorLineColor: "#000000"
+    signalColor: "#000000"
+    signalTextColor: "#000000"
+    labelBoxBkgColor: "#ffffff"
+    labelBoxBorderColor: "#000000"
+    labelTextColor: "#000000"
+    loopTextColor: "#000000"
+    noteBkgColor: "#ffffff"
+    noteBorderColor: "#000000"
+    noteTextColor: "#000000"
+    activationBkgColor: "#ffffff"
+    activationBorderColor: "#000000"
+    sequenceNumberColor: "#ffffff"
+    classText: "#000000"
+---
+flowchart TB
+  A([Inicio]) --> B["Recibir la red y los parámetros<br/>(P, G, p_c, p_m, selección, cruce, semilla)"]
+  B --> C["Balancear la red<br/>(misma red que el modelo exacto)"]
+  C --> D["Crear población inicial<br/>(30 % sesgada, 70 % aleatoria) y reparar"]
+  D --> E["Evaluar Z y aptitud f = 1 / (1 + Z)<br/>Registrar el mejor individuo (generación 0)"]
+  E --> F{"¿Se completaron<br/>G generaciones?"}
+  F -- No --> G["Elitismo: conservar<br/>los 2 mejores"]
+  G --> H["Selección de padres<br/>(torneo o ruleta)"]
+  H --> I["Cruce de uno o dos puntos<br/>(probabilidad p_c)"]
+  I --> J["Mutación<br/>(probabilidad p_m)"]
+  J --> K["Reparación<br/>(oferta y capacidad)"]
+  K --> L["Evaluar la nueva generación<br/>y registrar el mejor individuo"]
+  L --> F
+  F -- Sí --> M["Devolver la mejor solución, su costo,<br/>factibilidad, tiempo y curva de convergencia"]
+  M --> Z([Fin])

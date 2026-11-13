@@ -1,6 +1,4 @@
 // Grafo dirigido G = (V, E) de la red con vis-network.
-// Sin asignación: muestra todos los arcos. Con asignación: solo los arcos con flujo > 0,
-// con grosor proporcional a las toneladas.
 import { useEffect, useRef } from 'react'
 import { Network } from 'vis-network/standalone'
 import { useRed } from '../../context/RedContext.jsx'

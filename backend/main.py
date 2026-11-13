@@ -9,7 +9,7 @@ from app.db.sesion import ErrorBaseDatos
 
 app = FastAPI(title=settings.app_nombre, version="0.1.0")
 
-# Orígenes permitidos: CORS_ORIGENES y CORS_LOCALHOST en backend/.env (ver app/core/config.py)
+# Orígenes permitidos
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origenes_lista,
@@ -30,7 +30,6 @@ app.include_router(resultados.router, prefix="/resultados", tags=["Resultados (B
 
 @app.exception_handler(ErrorBaseDatos)
 def error_base_datos(_: Request, e: ErrorBaseDatos):
-    """Errores de la base de datos -> respuesta JSON con el mensaje de PostgreSQL."""
     return JSONResponse(status_code=e.codigo_http, content={"detail": e.mensaje})
 
 

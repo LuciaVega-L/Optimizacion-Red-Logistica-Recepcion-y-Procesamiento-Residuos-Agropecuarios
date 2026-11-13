@@ -9,11 +9,13 @@ Sistema web que minimiza el costo semanal de transportar residuos agropecuarios 
 | Módulo | Estado | Observación |
 |---|---|---|
 | Red y parametrización | ✅ Listo | Carga, edición, validación y balanceo de la red |
-| Modelo exacto | ✅ Listo | PuLP + CBC, precios sombra, verificación de restricciones |
+| Modelo exacto | ✅ Listo | Problema de transporte resuelto con símplex (PuLP + CBC); precios sombra por MODI; verificación de restricciones |
 | Algoritmo genético | ✅ Listo | Conectado a la API con `ejecutar(problema, parametros)`; selección por torneo o ruleta, cruce de uno o dos puntos |
 | Análisis de sensibilidad | ✅ Listo | Rangos de la base óptima y simulación de escenarios |
 | Reporte comparativo | ✅ Listo | Exacto vs. AG: costo, tiempo, gap y escalabilidad |
 | Base de datos (Supabase) | ✅ Listo | Historial de escenarios y resultados |
+| Diagramas UML | ✅ Listo | 7 diagramas en `docs/diagramas/` (Mermaid y PNG) |
+| Manual técnico | ✅ Listo | `docs/manual-tecnico/` (Word y PDF) |
 | Informe IEEE | 🟡 En progreso | En `docs/informe-ieee/` |
 
 Pruebas: **63 pasan**; las 5 de la base de datos se omiten si `FUENTE_DATOS` no es `bd`.
@@ -37,6 +39,8 @@ Pruebas: **63 pasan**; las 5 de la base de datos se omiten si `FUENTE_DATOS` no 
 - **Variable:** *xᵢⱼ* = toneladas por semana que van de *i* a *j*.
 - **Función objetivo:** min Z = Σᵢ Σⱼ cᵢⱼ · xᵢⱼ
 - **Restricciones:** oferta, capacidad y no negatividad.
+
+**Método de solución:** el problema de transporte balanceado se resuelve con el **método símplex** (solver CBC mediante PuLP). Con la base óptima se calculan los precios sombra por el **método MODI** (uᵢ + vⱼ = cᵢⱼ), se verifica la optimalidad y se obtienen los rangos de sensibilidad. Detalle en [docs/formulacion/modelo-transporte.md](docs/formulacion/modelo-transporte.md).
 
 Si la oferta total no es igual a la capacidad total, el sistema balancea la red con un nodo ficticio:
 
@@ -81,7 +85,7 @@ Sin base de datos, el sistema lee los escenarios de `backend/data/escenarios/*.j
 
 ```
 ├── contexto/             Enunciado del proyecto
-├── docs/                 Informe IEEE, diagramas, formulación y guía de la base de datos
+├── docs/                 Informe IEEE, diagramas, manual técnico, formulación y guía de la base de datos
 ├── supabase/             Scripts SQL (tablas, vistas, funciones y seguridad)
 ├── backend/
 │   ├── main.py           Punto de entrada de FastAPI (CORS y registro de rutas)
@@ -185,12 +189,17 @@ pytest
 
 ## Diagramas
 
-Pendientes: se guardarán en `docs/diagramas/` (hoy esa carpeta solo tiene un `LEEME.txt`):
+Están en `docs/diagramas/`, cada uno como código Mermaid (`.mmd`, editable) y como imagen (`.png`):
 
-- diagrama de clases;
-- diagrama de flujo del modelo de transporte;
-- diagrama de flujo del algoritmo genético;
-- diagrama de secuencia del modelo exacto.
+| Archivo | Diagrama |
+|---|---|
+| `01_flujo_solucion_exacta` | Flujo de la solución exacta |
+| `02_flujo_algoritmo_genetico` | Flujo del algoritmo genético |
+| `03_clases` | Clases del sistema (entidad, control) |
+| `04_secuencia_solucion_exacta` | Secuencia del modelo exacto (interfaz, control, entidad) |
+| `05_secuencia_algoritmo_genetico` | Secuencia del algoritmo genético (interfaz, control, entidad) |
+| `06_casos_de_uso` | Casos de uso (HU1 a HU6 y RF13) |
+| `07_arquitectura` | Arquitectura cliente-servidor |
 
 ```mermaid
 flowchart TD
@@ -200,7 +209,8 @@ flowchart TD
     C -- "Sí" --> D{"¿Oferta = capacidad?"}
     D -- "No" --> D1["Agregar nodo ficticio"] --> E
     D -- "Sí" --> E["Construir modelo PL en PuLP"]
-    E --> F["Resolver con CBC"]
-    F --> G["Calcular precios sombra<br/>y verificar restricciones"]
-    G --> H["Mostrar Z*, asignación y tiempo"] --> Z
+    E --> F["Resolver con el método símplex (CBC)"]
+    F --> G["Base óptima y precios sombra (MODI)"]
+    G --> H["Verificar restricciones"]
+    H --> I["Mostrar Z*, asignación y tiempo"] --> Z
 ```

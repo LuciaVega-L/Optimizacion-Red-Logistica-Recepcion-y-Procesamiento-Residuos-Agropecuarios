@@ -1,6 +1,4 @@
-// ¿Está activa la base de datos? El historial (/escenarios, /resultados) responde 503 con
-// FUENTE_DATOS=json, así que se consulta una sola vez y la respuesta se comparte entre páginas.
-// activa: null mientras se averigua, true / false después. recargar() vuelve a preguntar.
+
 import { useEffect, useState } from 'react'
 import { listarHistorialEscenarios } from '../api/historial.js'
 

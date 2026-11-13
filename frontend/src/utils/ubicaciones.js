@@ -1,6 +1,5 @@
 // Coordenadas (cabecera municipal, WGS84) de los municipios del Meta usados en la red.
-// El mapa ubica cada agroempresa y planta por su campo `municipio`; si un nodo trae
-// `lat` y `lon` propios, se usan esos. Los nodos sin ubicación conocida se listan aparte.
+
 const MUNICIPIOS_META = {
   'acacias': [3.9876, -73.7577],
   'barranca de upia': [4.5672, -72.9653],

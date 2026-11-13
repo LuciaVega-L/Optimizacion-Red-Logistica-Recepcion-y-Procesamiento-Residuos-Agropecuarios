@@ -1,11 +1,4 @@
-"""Lectura de escenarios en backend/data/escenarios/ y conversión al problema de transporte.
 
-El archivo de datos (p. ej. dataConfig.json) guarda solo datos de origen:
-distancias, costo por km·ton y costo operativo de cada planta.
-La matriz de costos unitarios se calcula aquí, nunca se guarda en el JSON:
-
-    c_ij = distancia_ij * costo_transporte_km_ton + costo_operativo_j     [COP/ton]
-"""
 import json
 from pathlib import Path
 
@@ -24,11 +17,7 @@ def listar_escenarios() -> list[str]:
 
 
 def cargar_escenario(nombre: str = ESCENARIO_BASE) -> dict:
-    """Devuelve el escenario con el formato de dataConfig.json.
 
-    Con FUENTE_DATOS=bd lo lee de PostgreSQL (mismas claves);
-    si no, lo lee del archivo en disco.
-    """
     if settings.usa_bd:
         from app.services.red import repositorio_bd
         return repositorio_bd.cargar_escenario(nombre)
@@ -37,7 +26,6 @@ def cargar_escenario(nombre: str = ESCENARIO_BASE) -> dict:
 
 
 def calcular_costos(config: dict, incluir_costo_operativo: bool = True) -> list[list[float]]:
-    """Matriz agroempresas x plantas de costo unitario (COP/ton)."""
     costo_km_ton = config["parametros_globales"]["costo_transporte_km_ton"]
     distancias = config["matriz_distancias_km"]
     matriz = []
@@ -53,7 +41,6 @@ def calcular_costos(config: dict, incluir_costo_operativo: bool = True) -> list[
 
 
 def validar_config(config: dict) -> list[str]:
-    """Revisa que el dataConfig tenga todas las claves y una distancia por cada ruta."""
     errores = []
     for clave in ("parametros_globales", "plantas", "agroempresas", "matriz_distancias_km"):
         if clave not in config:
@@ -75,7 +62,6 @@ def validar_config(config: dict) -> list[str]:
 
 
 def a_problema(config: dict, incluir_costo_operativo: bool = True) -> ProblemaTransporte:
-    """Convierte el dataConfig al formato que reciben los solucionadores."""
     errores = validar_config(config)
     if errores:
         raise ValueError(" ".join(errores))

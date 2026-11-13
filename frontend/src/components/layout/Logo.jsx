@@ -1,5 +1,4 @@
 // Logo de EcoResiduos: una hoja cuya nervadura es una ruta con nodos (residuo agrícola + red logística).
-// Es decorativo: el nombre siempre va en texto al lado.
 export default function Logo({ tamano = 32 }) {
   return (
     <svg className="logo" width={tamano} height={tamano} viewBox="0 0 32 32" aria-hidden="true" focusable="false">

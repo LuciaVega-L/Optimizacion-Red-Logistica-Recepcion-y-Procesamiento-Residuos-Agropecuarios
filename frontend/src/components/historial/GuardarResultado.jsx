@@ -1,8 +1,5 @@
 // Guarda una solución (respuesta de /exacto/resolver o /genetico/resolver) en el historial
-// de la base de datos, contra el escenario del que viene la red. La base calcula el gap
-// contra el último resultado exacto de ese escenario.
-// Solo se puede guardar si la BD está activa y la red es un escenario guardado sin cambios:
-// si no, la matriz de flujos no correspondería a los datos del escenario.
+
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { guardarSolucion } from '../../api/historial.js'

@@ -5,7 +5,6 @@ from app.schemas.red import ProblemaTransporte
 
 @pytest.fixture
 def problema_pequeno():
-    """Problema 3x2 balanceado para pruebas rápidas."""
     return ProblemaTransporte(
         fuentes=["A", "B", "C"],
         plantas=["P1", "P2"],

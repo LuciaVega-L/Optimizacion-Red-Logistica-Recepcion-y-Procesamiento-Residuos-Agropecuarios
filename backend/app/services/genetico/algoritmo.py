@@ -1,15 +1,4 @@
-"""Algoritmo Genético para el problema de transporte (agroempresas -> plantas).
 
-Dos formas de uso:
-
-* ejecutar(problema, parametros)  -> ResultadoGenetico    (API / comparativo / sensibilidad)
-* AlgoritmoGenetico(datosRed, ...).ejecutar()            -> dict (uso directo; datosRed como lo
-  arma _datos_desde_problema: agroempresas, plantas, matriz_costos, prohibidas, penalizaciones)
-
-El adaptador `ejecutar` construye los datos desde el MISMO modelo balanceado que usa el solver
-exacto (balancear(problema)): idénticos c_ij, ofertas, capacidades y nodo ficticio. Así ambos
-métodos resuelven el mismo problema y el gap es comparable.
-"""
 import random
 import time
 
@@ -17,7 +6,6 @@ from .fitness import EvaluadorFitness
 from .cromosoma import FabricaCromosomas
 from . import operadores as ops
 
-# Constantes del diseño (no se ajustan desde la interfaz; ver Tabla VI del informe)
 TAM_TORNEO = 3   # individuos que compiten en cada torneo
 NUM_ELITES = 2   # mejores individuos que pasan sin cambios a la siguiente generación
 
@@ -80,9 +68,6 @@ class AlgoritmoGenetico:
         return nueva
 
     def ejecutar(self, verbose: bool = False) -> dict:
-        """Generación 0 = población inicial; luego se crean `generaciones` generaciones nuevas.
-        Cada generación (incluida la última) se evalúa y se registra en el historial, así el
-        último punto de la curva de convergencia es siempre el costo de la mejor solución."""
         poblacion = self.fabrica.crearPoblacion(self.tamanoPoblacion)
         evaluaciones = self._evaluarPoblacion(poblacion)
 
@@ -90,8 +75,7 @@ class AlgoritmoGenetico:
         historial = []
 
         for gen in range(self.generaciones + 1):
-            # Se ordena por costoTotalZ (menor = mejor): evita los empates por
-            # redondeo que tendría el fitness 1/(1+Z) con Z del orden de 1e8.
+            # Se ordena por costoTotalZ (menor = mejor): evita los empates por 1/(1+Z) con Z del orden de 1e8.
             orden = sorted(range(len(poblacion)), key=lambda k: evaluaciones[k]["costoTotalZ"])
             idxMejor = orden[0]
 
@@ -110,7 +94,7 @@ class AlgoritmoGenetico:
                 print(f"Gen {gen:4d} | mejor Z = {mejorEval['costoTotalZ']:,.2f} | "
                       f"factible = {mejorEval['esFactible']}")
 
-            # Criterio de parada: se completaron las generaciones definidas por el usuario
+            # Criterio de parada
             if gen == self.generaciones:
                 break
 
@@ -140,11 +124,10 @@ class AlgoritmoGenetico:
         return resumen
 
 
-# ============================================================================ adaptador
+#  adaptador
 
 def _kwargs_desde_parametros(parametros) -> dict:
-    """ParametrosAG (lo que ajusta el usuario) -> argumentos de AlgoritmoGenetico.
-    El tamaño del torneo y las élites quedan en sus constantes (TAM_TORNEO, NUM_ELITES)."""
+    
     return {
         "tamanoPoblacion": parametros.poblacion,
         "generaciones": parametros.generaciones,
@@ -157,7 +140,6 @@ def _kwargs_desde_parametros(parametros) -> dict:
 
 
 def _datos_desde_problema(problema) -> dict:
-    """Mismos datos que el solver exacto: red balanceada (incluye el nodo ficticio)."""
     from app.services.exacto.modelo import balancear
     b = balancear(problema)
     return {
@@ -177,7 +159,6 @@ def _datos_desde_problema(problema) -> dict:
 
 
 def ejecutar(problema, parametros=None):
-    """Punto de entrada del API: ProblemaTransporte + ParametrosAG -> ResultadoGenetico."""
     from app.schemas.red import ParametrosAG
     from app.schemas.resultados import ResultadoGenetico
 

@@ -1,0 +1,72 @@
+---
+config:
+  theme: base
+  look: classic
+  fontFamily: "Arial, Helvetica, DejaVu Sans, sans-serif"
+  flowchart:
+    curve: linear
+    nodeSpacing: 30
+    rankSpacing: 50
+    wrappingWidth: 420
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    background: "#ffffff"
+    primaryColor: "#ffffff"
+    primaryTextColor: "#000000"
+    primaryBorderColor: "#000000"
+    secondaryColor: "#ffffff"
+    tertiaryColor: "#ffffff"
+    lineColor: "#000000"
+    textColor: "#000000"
+    mainBkg: "#ffffff"
+    nodeBorder: "#000000"
+    clusterBkg: "#ffffff"
+    clusterBorder: "#000000"
+    edgeLabelBackground: "#ffffff"
+    actorBkg: "#ffffff"
+    actorBorder: "#000000"
+    actorTextColor: "#000000"
+    actorLineColor: "#000000"
+    signalColor: "#000000"
+    signalTextColor: "#000000"
+    labelBoxBkgColor: "#ffffff"
+    labelBoxBorderColor: "#000000"
+    labelTextColor: "#000000"
+    loopTextColor: "#000000"
+    noteBkgColor: "#ffffff"
+    noteBorderColor: "#000000"
+    noteTextColor: "#000000"
+    activationBkgColor: "#ffffff"
+    activationBorderColor: "#000000"
+    sequenceNumberColor: "#ffffff"
+    classText: "#000000"
+---
+flowchart TB
+  U["«actor»<br/>Usuario"]
+  FE["<b>Cliente: navegador web</b><br/>Interfaz React + Vite<br/>(Parametrización, Modelo exacto, Algoritmo genético,<br/>Sensibilidad, Comparativo, Historial)"]
+  RT["<b>Servidor: API REST (FastAPI, Python)</b><br/>Rutas /red, /exacto, /genetico, /sensibilidad,<br/>/comparativo, /escenarios, /resultados"]
+
+  subgraph SVC["Servicios del backend"]
+    direction LR
+    S1["red<br/>(carga, validación,<br/>balanceo)"]
+    S2["exacto<br/>(modelo PL,<br/>duales)"]
+    S3["genetico<br/>(algoritmo<br/>genético)"]
+    S4["sensibilidad<br/>(rangos,<br/>escenarios)"]
+    S5["comparativo<br/>(gap,<br/>escalabilidad)"]
+  end
+
+  JS[("Archivos JSON<br/>(escenarios)")]
+  DB[("PostgreSQL<br/>(Supabase)")]
+  CBC[("Solver CBC<br/>(PuLP)")]
+
+  U --> FE
+  FE -- "HTTP / JSON" --> RT
+  RT --> S1
+  RT --> S2
+  RT --> S3
+  RT --> S4
+  RT --> S5
+  S1 --> JS
+  S1 -- "SQLAlchemy" --> DB
+  S2 --> CBC

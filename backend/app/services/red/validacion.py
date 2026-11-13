@@ -1,8 +1,4 @@
-"""Validaciones de consistencia de la red (dimensiones, valores negativos, vacíos, balance).
 
-`validar` devuelve una lista de mensajes de error legibles para el usuario (HU1).
-Una lista vacía significa que el problema se puede enviar a los solucionadores.
-"""
 import math
 
 from app.schemas.red import ProblemaTransporte
@@ -109,7 +105,6 @@ def esta_balanceado(problema: ProblemaTransporte) -> bool:
 
 
 def estado_balance(problema: ProblemaTransporte) -> dict:
-    """Resumen para la interfaz: balanceado, oferta < capacidad u oferta > capacidad."""
     oferta, capacidad = sum(problema.oferta), sum(problema.demanda)
     if esta_balanceado(problema):
         estado, mensaje = "balanceado", "La red está balanceada (oferta = capacidad)."

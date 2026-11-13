@@ -1,10 +1,4 @@
-"""Generador de redes sintéticas para el análisis de escalabilidad (HU5).
 
-Produce un diccionario con el mismo formato de dataConfig.json, así que pasa por el mismo
-`repositorio.a_problema` que el caso real. Los nodos se ubican al azar en un rectángulo de
-300 × 200 km (aprox. la zona agroindustrial del Meta) y la distancia vial se estima como
-la distancia euclidiana × 1,25 (factor de sinuosidad de las vías).
-"""
 import math
 import random
 

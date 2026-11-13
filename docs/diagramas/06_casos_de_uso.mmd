@@ -1,0 +1,76 @@
+---
+config:
+  theme: base
+  look: classic
+  fontFamily: "Arial, Helvetica, DejaVu Sans, sans-serif"
+  layout: elk
+  elk:
+    nodePlacementStrategy: BRANDES_KOEPF
+  flowchart:
+    curve: linear
+    nodeSpacing: 40
+    rankSpacing: 45
+    wrappingWidth: 320
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    background: "#ffffff"
+    primaryColor: "#ffffff"
+    primaryTextColor: "#000000"
+    primaryBorderColor: "#000000"
+    secondaryColor: "#ffffff"
+    tertiaryColor: "#ffffff"
+    lineColor: "#000000"
+    textColor: "#000000"
+    mainBkg: "#ffffff"
+    nodeBorder: "#000000"
+    clusterBkg: "#ffffff"
+    clusterBorder: "#000000"
+    edgeLabelBackground: "#ffffff"
+    actorBkg: "#ffffff"
+    actorBorder: "#000000"
+    actorTextColor: "#000000"
+    actorLineColor: "#000000"
+    signalColor: "#000000"
+    signalTextColor: "#000000"
+    labelBoxBkgColor: "#ffffff"
+    labelBoxBorderColor: "#000000"
+    labelTextColor: "#000000"
+    loopTextColor: "#000000"
+    noteBkgColor: "#ffffff"
+    noteBorderColor: "#000000"
+    noteTextColor: "#000000"
+    activationBkgColor: "#ffffff"
+    activationBorderColor: "#000000"
+    sequenceNumberColor: "#ffffff"
+    classText: "#000000"
+---
+flowchart LR
+  AL["«actor»<br/>Analista logístico"]
+  GE["«actor»<br/>Gerente de EcoResiduos"]
+  LP["«actor»<br/>Líder de proyecto"]
+
+  subgraph SIS["Sistema de optimización logística EcoResiduos"]
+    direction TB
+    CU1(["HU1 Parametrizar la red logística"])
+    CU2(["HU2 Resolver con el modelo exacto"])
+    CU3(["HU3 Configurar y ejecutar el AG"])
+    CU4(["HU4 Analizar sensibilidad"])
+    CU5(["HU5 Generar reporte comparativo"])
+    CU6(["HU6 Exportar resultados (CSV)"])
+    CU7(["Guardar escenarios y resultados<br/>en el historial (RF13)"])
+    CI1(["Validar datos (RF05)"])
+    CI2(["Balancear red con nodo ficticio (RF06)"])
+    CI3(["Verificar restricciones (RF08)"])
+  end
+
+  AL --- CU1
+  AL --- CU2
+  AL --- CU3
+  AL --- CU7
+  GE --- CU4
+  GE --- CU5
+  LP --- CU6
+  CU1 -. "«include»" .-> CI1
+  CU2 -. "«include»" .-> CI2
+  CU2 -. "«include»" .-> CI3

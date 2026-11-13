@@ -1,6 +1,5 @@
 // Guarda la red actual como escenario en la base de datos (POST /escenarios).
-// Tras guardarla, la red actual queda asociada a ese nombre y los resultados que se
-// obtengan se pueden guardar en el historial contra él.
+
 import { useState } from 'react'
 import { guardarEscenario } from '../../api/historial.js'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'

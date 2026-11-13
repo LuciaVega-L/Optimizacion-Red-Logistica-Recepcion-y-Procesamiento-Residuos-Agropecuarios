@@ -21,7 +21,6 @@ def test_matriz_costos_calculada():
 
 
 def test_tabla_iii_del_informe():
-    """La matriz de costos del software debe coincidir con la Tabla III del informe."""
     tabla_iii = {
         "E01": [55000, 32800, 148400, 276000], "E02": [125800, 144400, 218000, 154800],
         "E03": [58600, 76000, 90800, 286800], "E04": [101800, 120400, 47600, 330000],

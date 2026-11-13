@@ -1,17 +1,10 @@
-"""Verifica que una asignación cumpla oferta, capacidad y no negatividad (HU2).
 
-Se usa para el modelo exacto y también sirve para revisar la solución del AG.
-"""
 TOL = 1e-6
 
 
 def verificar(asignacion, oferta, demanda, fuentes=None, plantas=None,
               oferta_con_igualdad: bool = True, tol: float = TOL) -> list[dict]:
-    """Devuelve una fila por restricción con su lado izquierdo, derecho y si se cumple.
 
-    oferta_con_igualdad=False se usa cuando falta capacidad (planta ficticia): en ese caso
-    una agroempresa puede despachar menos que su oferta (Σ_j x_ij ≤ O_i).
-    """
     n, m = len(oferta), len(demanda)
     fuentes = fuentes or [f"F{i + 1}" for i in range(n)]
     plantas = plantas or [f"P{j + 1}" for j in range(m)]

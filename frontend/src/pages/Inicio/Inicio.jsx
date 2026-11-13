@@ -1,4 +1,4 @@
-// Página de inicio: resumen de la red cargada y acceso a cada módulo.
+// Página de inicio
 import { Link } from 'react-router-dom'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Cargando from '../../components/comunes/Cargando.jsx'

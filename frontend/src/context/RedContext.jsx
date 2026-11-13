@@ -1,7 +1,5 @@
 // Estado compartido: la red editable (formato dataConfig.json) y los últimos resultados.
-// La red se guarda en el navegador para no perder los cambios al recargar.
-// `escenario` = { nombre, modificado }: de qué escenario guardado viene la red y si se editó
-// después. Los resultados solo se pueden guardar en la BD contra un escenario sin cambios.
+
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { obtenerEscenario } from '../api/red.js'
 import { aProblema, balance, validarConfig, normalizarConfig } from '../utils/red.js'

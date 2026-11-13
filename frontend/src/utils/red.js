@@ -1,6 +1,5 @@
 // Conversión de la red editable (formato dataConfig.json) al problema de transporte.
-// Misma fórmula que backend/app/services/red/repositorio.py:
-//   c_ij = distancia_ij * costo_transporte_km_ton + costo_operativo_j   [COP/ton]
+
 const vacio = (v) => v === '' || v === null || v === undefined || Number.isNaN(Number(v))
 
 export function normalizarConfig(raw) {

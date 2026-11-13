@@ -1,4 +1,3 @@
-"""Rutas deshabilitadas (exacto, AG, sensibilidad, validación) y penalizaciones del AG."""
 import pytest
 from fastapi.testclient import TestClient
 

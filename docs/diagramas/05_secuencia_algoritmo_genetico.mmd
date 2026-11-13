@@ -1,0 +1,75 @@
+---
+config:
+  theme: base
+  look: classic
+  fontFamily: "Arial, Helvetica, DejaVu Sans, sans-serif"
+  sequence:
+    mirrorActors: false
+    actorMargin: 45
+    messageMargin: 34
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    background: "#ffffff"
+    primaryColor: "#ffffff"
+    primaryTextColor: "#000000"
+    primaryBorderColor: "#000000"
+    secondaryColor: "#ffffff"
+    tertiaryColor: "#ffffff"
+    lineColor: "#000000"
+    textColor: "#000000"
+    mainBkg: "#ffffff"
+    nodeBorder: "#000000"
+    clusterBkg: "#ffffff"
+    clusterBorder: "#000000"
+    edgeLabelBackground: "#ffffff"
+    actorBkg: "#ffffff"
+    actorBorder: "#000000"
+    actorTextColor: "#000000"
+    actorLineColor: "#000000"
+    signalColor: "#000000"
+    signalTextColor: "#000000"
+    labelBoxBkgColor: "#ffffff"
+    labelBoxBorderColor: "#000000"
+    labelTextColor: "#000000"
+    loopTextColor: "#000000"
+    noteBkgColor: "#ffffff"
+    noteBorderColor: "#000000"
+    noteTextColor: "#000000"
+    activationBkgColor: "#ffffff"
+    activationBorderColor: "#000000"
+    sequenceNumberColor: "#ffffff"
+    classText: "#000000"
+---
+sequenceDiagram
+  actor U as Analista logístico
+  participant V@{ "type": "boundary" } as VistaAlgoritmoGenetico
+  participant C@{ "type": "control" } as ControladorAG
+  participant A@{ "type": "control" } as AlgoritmoGenetico
+  participant F@{ "type": "control" } as FabricaCromosomas
+  participant E@{ "type": "control" } as EvaluadorFitness
+  participant O@{ "type": "control" } as OperadoresGeneticos
+  participant R@{ "type": "entity" } as ResultadoGenetico
+
+  U->>V: Ajusta parámetros y presiona "Ejecutar AG"
+  V->>C: POST /genetico/resolver(problema, parámetros)
+  C->>A: ejecutar(red balanceada, parámetros)
+  A->>F: crearPoblacion(P)
+  F-->>A: población inicial reparada
+  A->>E: evaluar población
+  E-->>A: costos Z
+  loop Cada generación (1 … G)
+    Note over A: Conserva los 2 mejores (elitismo)
+    A->>O: selección, cruce y mutación
+    O-->>A: hijos
+    A->>F: reparar(hijos)
+    F-->>A: hijos factibles
+    A->>E: evaluar nueva generación
+    E-->>A: costos Z
+    Note over A: Registra el mejor Z
+  end
+  A->>R: crear(costo, asignación, tiempo, curva)
+  R-->>A: resultado
+  A-->>C: ResultadoGenetico
+  C-->>V: 200 OK (JSON)
+  V-->>U: Muestra costo, gap, asignación y convergencia

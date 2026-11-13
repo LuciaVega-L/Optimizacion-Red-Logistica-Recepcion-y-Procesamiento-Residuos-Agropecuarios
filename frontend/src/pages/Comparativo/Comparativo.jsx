@@ -28,7 +28,7 @@ import { FormularioAG, PARAMETROS_AG_INICIALES } from '../Genetico/Genetico.jsx'
 const TAMANOS = [[10, 4], [20, 4], [50, 6]]
 
 // Tiempo aproximado del AG: ~0,25 s por celda (fuente × planta) con población 100 y 500
-// generaciones y 3 semillas en paralelo, medido con la app abierta (10×4 + 20×4 + 50×6 ≈ 105 s).
+
 function estimarSegundos(tamanos, parametros, numSemillas, incluirAg) {
   if (!incluirAg) return tamanos.length
   const factor = (Number(parametros.poblacion) * Number(parametros.generaciones)) / 50000

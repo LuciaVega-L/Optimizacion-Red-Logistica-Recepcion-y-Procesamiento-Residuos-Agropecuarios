@@ -1,7 +1,5 @@
 // Tabla editable para una matriz fuentes x plantas (p. ej. distancias en km).
-// valores: { [filaId]: { [columnaId]: número } }
-// cerrada(f, c) / onAlternar(f, c) (opcionales): marcan una ruta como deshabilitada.
-// Una ruta cerrada conserva su distancia, pero ningún método puede enviar flujo por ella.
+
 import Icono from '../comunes/Icono.jsx'
 
 export default function MatrizEditable({ filas, columnas, valores, onCambio, unidad, paso = 1, cerrada, onAlternar }) {

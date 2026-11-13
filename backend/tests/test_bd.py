@@ -1,13 +1,4 @@
-"""Pruebas de la base de datos: guardar una ejecución y recuperar el historial.
 
-Se saltan si FUENTE_DATOS no es "bd" en backend/.env, para que `pytest`
-siga funcionando sin base de datos. Para ejecutarlas:
-
-    python -m pytest tests/test_bd.py -v
-
-Trabajan sobre escenarios temporales "_prueba_pytest*" que se borran al
-final; no tocan el escenario base.
-"""
 import json
 
 import pytest
@@ -30,7 +21,6 @@ def leer_json_base() -> dict:
 
 
 def asignacion_voraz(problema):
-    """Asignación factible sencilla: cada empresa a la planta más barata con capacidad."""
     cap = list(problema.demanda)
     x = [[0.0] * len(cap) for _ in problema.oferta]
     for i, oferta in enumerate(problema.oferta):

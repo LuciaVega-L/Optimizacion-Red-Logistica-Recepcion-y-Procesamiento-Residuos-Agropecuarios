@@ -1,4 +1,3 @@
-// HU4 — Análisis de sensibilidad: precios sombra, rangos de base óptima y escenarios.
 import { useEffect, useState } from 'react'
 import { escenariosPredefinidos, simularEscenarios } from '../../api/sensibilidad.js'
 import Aviso from '../../components/comunes/Aviso.jsx'

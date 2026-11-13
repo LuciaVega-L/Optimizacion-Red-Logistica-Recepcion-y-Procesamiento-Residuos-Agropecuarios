@@ -1,2 +1,10 @@
-Diagramas del sistema: arquitectura, grafo de la red logística,
-componentes y secuencia. Guardar fuente editable (draw.io, .mmd) y exportación (.png/.svg).
+Diagramas UML del sistema EcoResiduos del Llano.
+Cada diagrama está como código Mermaid (.mmd, editable en https://mermaid.live) y como imagen (.png).
+
+01_flujo_solucion_exacta        Flujo de la solución exacta (símplex con CBC y precios sombra por MODI)
+02_flujo_algoritmo_genetico     Flujo del algoritmo genético
+03_clases                       Diagrama de clases (estereotipos entidad y control)
+04_secuencia_solucion_exacta    Secuencia del modelo exacto (interfaz, control, entidad)
+05_secuencia_algoritmo_genetico Secuencia del algoritmo genético (interfaz, control, entidad)
+06_casos_de_uso                 Casos de uso (HU1 a HU6 y RF13)
+07_arquitectura                 Arquitectura cliente-servidor
