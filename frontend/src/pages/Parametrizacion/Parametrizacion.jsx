@@ -16,7 +16,7 @@ import VectorEditable from '../../components/matrices/VectorEditable.jsx'
 import { useRed } from '../../context/RedContext.jsx'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { moneda, numero } from '../../utils/formato.js'
-import { siguienteId } from '../../utils/red.js'
+import { alternarRuta, rutaCerrada, siguienteId } from '../../utils/red.js'
 
 const COLS_EMPRESAS = [
   { clave: 'id', titulo: 'Id', ancho: '4.5rem' },
@@ -73,6 +73,9 @@ export default function Parametrizacion() {
       const d = c.matriz_distancias_km
       if (lista === 'agroempresas') { d[valor] = d[anterior] ?? {}; delete d[anterior] }
       else Object.values(d).forEach((fila) => { fila[valor] = fila[anterior]; delete fila[anterior] })
+      const pos = lista === 'agroempresas' ? 0 : 1                    // y en las rutas cerradas
+      c.rutas_deshabilitadas = (c.rutas_deshabilitadas ?? []).map((r) => (r[pos] === anterior
+        ? (pos === 0 ? [valor, r[1]] : [r[0], valor]) : r))
     }
     return c
   })
@@ -92,11 +95,13 @@ export default function Parametrizacion() {
   const eliminarEmpresa = (k) => actualizarConfig((c) => {
     const [e] = c.agroempresas.splice(k, 1)
     delete c.matriz_distancias_km[e.id]
+    c.rutas_deshabilitadas = (c.rutas_deshabilitadas ?? []).filter(([f]) => f !== e.id)
     return c
   })
   const eliminarPlanta = (k) => actualizarConfig((c) => {
     const [p] = c.plantas.splice(k, 1)
     Object.values(c.matriz_distancias_km).forEach((fila) => delete fila[p.id])
+    c.rutas_deshabilitadas = (c.rutas_deshabilitadas ?? []).filter(([, q]) => q !== p.id)
     return c
   })
 
@@ -152,6 +157,20 @@ export default function Parametrizacion() {
           </label>
           <p className="texto-suave nota">c<sub>ij</sub> = d<sub>ij</sub> × costo km·t + costo operativo<sub>j</sub></p>
         </Tarjeta>
+        <Tarjeta titulo="Penalizaciones del AG">
+          <div className="formulario formulario--linea">
+            {[['factorPlanta', 'Exceso de oferta'], ['factorDemanda', 'Exceso de capacidad']].map(([clave, texto]) => (
+              <label key={clave} className="campo">{texto} (λ)
+                <input type="number" min="0" placeholder="Automático" value={config.penalizaciones?.[clave] ?? ''}
+                  onChange={(e) => actualizarConfig((c) => {
+                    c.penalizaciones = { ...(c.penalizaciones ?? {}), [clave]: e.target.value === '' ? null : Number(e.target.value) }
+                    return c
+                  })} />
+              </label>
+            ))}
+          </div>
+          <p className="texto-suave nota">COP por t² de exceso. Vacío: el AG usa el mayor c<sub>ij</sub>.</p>
+        </Tarjeta>
       </div>
 
       <Tarjeta titulo={`Agroempresas (${config.agroempresas.length})`} acciones={
@@ -169,7 +188,14 @@ export default function Parametrizacion() {
       <Tarjeta titulo="Distancias viales (km)">
         <MatrizEditable filas={config.agroempresas} columnas={config.plantas} unidad="km"
           valores={config.matriz_distancias_km}
-          onCambio={(e, p, v) => actualizarConfig((c) => { c.matriz_distancias_km[e][p] = v; return c })} />
+          onCambio={(e, p, v) => actualizarConfig((c) => { c.matriz_distancias_km[e][p] = v; return c })}
+          cerrada={(e, p) => rutaCerrada(config, e, p)}
+          onAlternar={(e, p) => actualizarConfig((c) => alternarRuta(c, e, p))} />
+        <p className="texto-suave nota">
+          Usa el botón de cada celda para cerrar una ruta (vía en mal estado, sin convenio…): ningún método enviará residuo por ella.
+          {(config.rutas_deshabilitadas ?? []).length > 0 &&
+            ` Cerradas: ${config.rutas_deshabilitadas.map(([f, q]) => `${f}→${q}`).join(', ')}.`}
+        </p>
       </Tarjeta>
 
       {problema && (

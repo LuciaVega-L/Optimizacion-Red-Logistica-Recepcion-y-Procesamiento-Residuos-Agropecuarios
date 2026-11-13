@@ -107,6 +107,14 @@ input[type='checkbox'] { min-height: 0; width: 1.125rem; height: 1.125rem; accen
 .tabla tfoot th, .tabla tfoot td { border-top: var(--borde-ancho) solid var(--color-borde-fuerte); border-bottom: 0; background: var(--color-superficie-alt); }
 .tabla--compacta th, .tabla--compacta td { padding: var(--esp-1) var(--esp-2); }
 .tabla--compacta input[type='number'] { width: 5.5rem; }
+.celda-ruta { display: flex; align-items: center; gap: var(--esp-1); }
+.boton-ruta { display: inline-flex; align-items: center; justify-content: center; width: 1.75rem; height: 1.75rem; flex-shrink: 0;
+  border: var(--borde-ancho) solid transparent; border-radius: var(--radio-sm); background: transparent; color: var(--color-texto-suave); cursor: pointer; }
+.boton-ruta:hover { border-color: var(--color-borde-fuerte); color: var(--color-texto); }
+.boton-ruta:focus-visible { outline: 2px solid var(--color-primario); outline-offset: 1px; }
+.celda--cerrada { background: repeating-linear-gradient(135deg, var(--color-superficie-alt) 0 6px, var(--color-superficie) 6px 12px); }
+.celda--cerrada input { text-decoration: line-through; color: var(--color-texto-suave); }
+.celda--cerrada .boton-ruta { color: var(--color-error); border-color: var(--color-error-borde); }
 .tabla--numeros td { text-align: right; font-variant-numeric: tabular-nums; }
 .celda--activa { background: var(--color-primario-suave); color: var(--azul-900); font-weight: var(--peso-semi); }
 .celda--total { font-weight: var(--peso-negrita); }

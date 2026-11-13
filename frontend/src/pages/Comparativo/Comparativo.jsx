@@ -23,7 +23,18 @@ import { descargarCSV, exportarPDF } from '../../utils/exportar.js'
 import { moneda, numero, porcentaje, segundos } from '../../utils/formato.js'
 import { FormularioAG, PARAMETROS_AG_INICIALES } from '../Genetico/Genetico.jsx'
 
-const TAMANOS = [[10, 4], [20, 4], [50, 6], [100, 10]]
+// 100×10 queda opcional: con los parámetros por defecto el AG tarda unos 2,5 min por semilla.
+const TAMANOS = [[10, 4], [20, 4], [50, 6]]
+
+// Tiempo aproximado del AG: ~0,25 s por celda (fuente × planta) con población 100 y 500
+// generaciones y 3 semillas en paralelo, medido con la app abierta (10×4 + 20×4 + 50×6 ≈ 105 s).
+function estimarSegundos(tamanos, parametros, numSemillas, incluirAg) {
+  if (!incluirAg) return tamanos.length
+  const factor = (Number(parametros.poblacion) * Number(parametros.generaciones)) / 50000
+  const tandas = Math.ceil(Math.max(numSemillas, 1) / 4)
+  return tamanos.reduce((s, [n, m]) => s + 0.25 * n * m * factor * tandas + 1, 0)
+}
+const duracion = (seg) => (seg < 60 ? `${Math.max(1, Math.round(seg))} s` : `${Math.round(seg / 60)} min`)
 const gap = (ag, ex) => (ag != null && ex ? ((ag - ex) / ex) * 100 : null)
 
 export default function Comparativo() {
@@ -48,8 +59,11 @@ export default function Comparativo() {
     return true
   })
 
+  const listaSemillas = semillas.split(',').map((s) => s.trim()).filter(Boolean).map(Number).filter(Number.isFinite)
+  const estimado = estimarSegundos(tamanos, parametros, listaSemillas.length, incluirAg)
+
   const compararEscala = async () => {
-    const lista = semillas.split(',').map((s) => Number(s.trim())).filter(Number.isFinite)
+    const lista = listaSemillas
     const r = await escala.ejecutar(() => compararTamanos(tamanos, parametros, incluirAg, lista.length ? lista : [1]))
     if (r) {
       guardarResultado('escalabilidad', r)
@@ -181,7 +195,7 @@ export default function Comparativo() {
                 </span>
               ))}
               <Boton variante="secundario" className="boton--mini" disabled={escala.cargando}
-                onClick={() => setTamanos([...tamanos, [200, 10]])}><Icono nombre="mas" tamano={16} />Tamaño</Boton>
+                onClick={() => setTamanos([...tamanos, [100, 10]])}><Icono nombre="mas" tamano={16} />Tamaño</Boton>
             </div>
           </fieldset>
           <div className="formulario formulario--linea">
@@ -192,10 +206,16 @@ export default function Comparativo() {
             </label>
             <Boton onClick={compararEscala} disabled={!tamanos.length || actual.cargando} cargando={escala.cargando}>Medir escalabilidad</Boton>
           </div>
+          {tamanos.length > 0 && (
+            <p className={estimado > 120 ? 'texto-alerta' : 'texto-suave'}>
+              Tiempo estimado: cerca de {duracion(estimado)}.
+              {estimado > 120 && ' Para la demostración en vivo conviene quitar las redes grandes o usar una sola semilla.'}
+            </p>
+          )}
         </div>
 
         {escala.cargando && (
-          <Cargando texto="Resolviendo redes de distintos tamaños…">
+          <Cargando texto={`Resolviendo redes de distintos tamaños (cerca de ${duracion(estimado)})…`}>
             <EsqueletoTabla filas={4} columnas={9} titulo={false} />
             <EsqueletoGrafica alto={220} titulo={false} />
           </Cargando>

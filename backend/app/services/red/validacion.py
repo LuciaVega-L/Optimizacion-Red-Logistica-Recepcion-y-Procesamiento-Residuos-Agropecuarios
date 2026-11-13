@@ -85,6 +85,20 @@ def validar(problema: ProblemaTransporte) -> list[str]:
         else:
             errores += _validar_vector(problema.costo_operativo, problema.plantas, "El costo operativo")
 
+    # Rutas cerradas: ids conocidos y ninguna agroempresa con oferta queda sin salida
+    desconocidas = [f"{f}→{p}" for f, p in problema.rutas_deshabilitadas
+                    if f not in problema.fuentes or p not in problema.plantas]
+    if desconocidas:
+        errores.append(f"Rutas deshabilitadas con ids que no existen: {', '.join(desconocidas)}.")
+    else:
+        cerradas = problema.indices_deshabilitados()
+        for i, f in enumerate(problema.fuentes):
+            if problema.oferta[i] > TOL and all((i, j) in cerradas for j in range(m)):
+                errores.append(f"{f} tiene todas sus rutas deshabilitadas: su residuo no puede llegar a ninguna planta.")
+    for nombre, valor in (("oferta", problema.penalizacion_oferta), ("capacidad", problema.penalizacion_capacidad)):
+        if valor is not None and (not _es_numero_valido(valor) or valor < 0):
+            errores.append(f"La penalización de {nombre} del AG debe ser un número no negativo.")
+
     if not errores and sum(problema.oferta) <= TOL:
         errores.append("La oferta total debe ser mayor que cero.")
     return errores

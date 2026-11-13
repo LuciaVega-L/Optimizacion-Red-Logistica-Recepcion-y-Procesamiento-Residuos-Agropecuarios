@@ -35,6 +35,7 @@ class ProblemaBalanceado:
     n_real: int                    # número de fuentes reales
     m_real: int                    # número de plantas reales
     ficticio: dict | None = None   # {"tipo": "fuente"|"planta", "id": str, "cantidad": float}
+    cerradas: set = field(default_factory=set)   # (i, j) de rutas deshabilitadas: x_ij = 0
 
     @property
     def indice_ficticio(self) -> tuple[str, int] | None:
@@ -91,7 +92,9 @@ def balancear(problema: ProblemaTransporte, costo_no_procesado: float = 0.0) -> 
             fila.append(float(costo_no_procesado))
         ficticio = {"tipo": "planta", "id": id_f, "cantidad": -diferencia}
 
-    return ProblemaBalanceado(fuentes, plantas, oferta, demanda, costos, n, m, ficticio)
+    # Los índices reales no cambian: la fila o columna ficticia va al final y nunca está cerrada.
+    return ProblemaBalanceado(fuentes, plantas, oferta, demanda, costos, n, m, ficticio,
+                              problema.indices_deshabilitados())
 
 
 def construir_modelo(problema: ProblemaTransporte, costo_no_procesado: float = 0.0) -> ModeloTransporte:
@@ -100,7 +103,9 @@ def construir_modelo(problema: ProblemaTransporte, costo_no_procesado: float = 0
     lp = pulp.LpProblem("Transporte_EcoResiduos", pulp.LpMinimize)
     I, J = range(len(b.fuentes)), range(len(b.plantas))
 
-    x = {(i, j): pulp.LpVariable(f"x_{i}_{j}", lowBound=0) for i in I for j in J}
+    # Ruta deshabilitada → cota superior 0 (la variable existe pero no puede llevar flujo)
+    x = {(i, j): pulp.LpVariable(f"x_{i}_{j}", lowBound=0, upBound=0 if (i, j) in b.cerradas else None)
+         for i in I for j in J}
     lp += pulp.lpSum(b.costos[i][j] * x[i, j] for i in I for j in J), "Costo_total"
 
     r_oferta, r_demanda = [], []

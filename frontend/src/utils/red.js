@@ -1,6 +1,8 @@
 // Conversión de la red editable (formato dataConfig.json) al problema de transporte.
 // Misma fórmula que backend/app/services/red/repositorio.py:
 //   c_ij = distancia_ij * costo_transporte_km_ton + costo_operativo_j   [COP/ton]
+const vacio = (v) => v === '' || v === null || v === undefined || Number.isNaN(Number(v))
+
 export function normalizarConfig(raw) {
   if (!raw || typeof raw !== 'object') return null
   if (raw.parametros_globales && Array.isArray(raw.agroempresas) && Array.isArray(raw.plantas)) return raw
@@ -28,6 +30,18 @@ export function normalizarConfig(raw) {
   }
 }
 
+// Rutas cerradas: pares [agroempresa, planta], mismo formato que dataConfig.json y la BD.
+export const rutaCerrada = (config, e, p) =>
+  (config.rutas_deshabilitadas ?? []).some(([f, q]) => f === e && q === p)
+
+export function alternarRuta(config, e, p) {
+  const lista = config.rutas_deshabilitadas ?? []
+  config.rutas_deshabilitadas = rutaCerrada(config, e, p)
+    ? lista.filter(([f, q]) => !(f === e && q === p))
+    : [...lista, [e, p]]
+  return config
+}
+
 export function aProblema(config) {
   const ckm = Number(config.parametros_globales.costo_transporte_km_ton)
   const empresas = config.agroempresas
@@ -43,10 +57,14 @@ export function aProblema(config) {
     distancias,
     costo_km_ton: ckm,
     costo_operativo: plantas.map((p) => Number(p.costo_operativo_ton)),
+    // Solo las rutas cuyos dos extremos siguen existiendo
+    rutas_deshabilitadas: (config.rutas_deshabilitadas ?? []).filter(([f, q]) =>
+      empresas.some((e) => e.id === f) && plantas.some((p) => p.id === q)),
+    // λ del AG (dataConfig: factorPlanta = oferta, factorDemanda = capacidad); vacío = valor por defecto
+    penalizacion_oferta: vacio(config.penalizaciones?.factorPlanta) ? null : Number(config.penalizaciones.factorPlanta),
+    penalizacion_capacidad: vacio(config.penalizaciones?.factorDemanda) ? null : Number(config.penalizaciones.factorDemanda),
   }
 }
-
-const vacio = (v) => v === '' || v === null || v === undefined || Number.isNaN(Number(v))
 
 // Validación inmediata en el navegador (el backend vuelve a validar al resolver).
 export function validarConfig(config) {
@@ -70,6 +88,15 @@ export function validarConfig(config) {
       if (vacio(km)) errores.push(`Falta la distancia ${e.id}→${p.id}.`)
       else if (Number(km) < 0) errores.push(`La distancia ${e.id}→${p.id} no puede ser negativa.`)
     })
+  })
+  config.agroempresas.forEach((e) => {
+    if (Number(e.oferta_ton_sem) > 0 && config.plantas.length && config.plantas.every((p) => rutaCerrada(config, e.id, p.id)))
+      errores.push(`${e.id} tiene todas sus rutas cerradas: su residuo no puede llegar a ninguna planta.`)
+  })
+  ;[['factorPlanta', 'oferta'], ['factorDemanda', 'capacidad']].forEach(([clave, nombre]) => {
+    const v = config.penalizaciones?.[clave]
+    if (v !== undefined && v !== null && v !== '' && (Number.isNaN(Number(v)) || Number(v) < 0))
+      errores.push(`La penalización de ${nombre} del AG debe ser un número no negativo.`)
   })
   config.plantas.forEach((p) => {
     if (vacio(p.capacidad_maxima_ton_sem)) errores.push(`La capacidad de ${p.id} está vacía.`)

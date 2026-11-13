@@ -1,6 +1,10 @@
 // Tabla editable para una matriz fuentes x plantas (p. ej. distancias en km).
 // valores: { [filaId]: { [columnaId]: número } }
-export default function MatrizEditable({ filas, columnas, valores, onCambio, unidad, paso = 1 }) {
+// cerrada(f, c) / onAlternar(f, c) (opcionales): marcan una ruta como deshabilitada.
+// Una ruta cerrada conserva su distancia, pero ningún método puede enviar flujo por ella.
+import Icono from '../comunes/Icono.jsx'
+
+export default function MatrizEditable({ filas, columnas, valores, onCambio, unidad, paso = 1, cerrada, onAlternar }) {
   return (
     <div className="tabla-contenedor">
       <table className="tabla tabla--compacta">
@@ -17,13 +21,24 @@ export default function MatrizEditable({ filas, columnas, valores, onCambio, uni
               {columnas.map((c) => {
                 const v = valores[f.id]?.[c.id]
                 const invalido = v === '' || v === undefined || Number(v) < 0
+                const esCerrada = cerrada?.(f.id, c.id) ?? false
                 return (
-                  <td key={c.id}>
-                    <input type="number" min="0" step={paso} value={v ?? ''}
-                      className={invalido ? 'input--error' : ''}
-                      aria-invalid={invalido || undefined} required
-                      aria-label={`Distancia de ${f.id} a ${c.id}${unidad ? ` en ${unidad}` : ''}`}
-                      onChange={(e) => onCambio(f.id, c.id, e.target.value === '' ? '' : Number(e.target.value))} />
+                  <td key={c.id} className={esCerrada ? 'celda--cerrada' : undefined}>
+                    <div className="celda-ruta">
+                      <input type="number" min="0" step={paso} value={v ?? ''}
+                        className={invalido ? 'input--error' : ''}
+                        aria-invalid={invalido || undefined} required
+                        aria-label={`Distancia de ${f.id} a ${c.id}${unidad ? ` en ${unidad}` : ''}`}
+                        onChange={(e) => onCambio(f.id, c.id, e.target.value === '' ? '' : Number(e.target.value))} />
+                      {onAlternar && (
+                        <button type="button" className="boton-ruta" aria-pressed={esCerrada}
+                          title={esCerrada ? `Abrir la ruta ${f.id}→${c.id}` : `Cerrar la ruta ${f.id}→${c.id}`}
+                          aria-label={esCerrada ? `Abrir la ruta ${f.id}→${c.id}` : `Cerrar la ruta ${f.id}→${c.id}`}
+                          onClick={() => onAlternar(f.id, c.id)}>
+                          <Icono nombre={esCerrada ? 'reintentar' : 'cerrar'} tamano={14} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 )
               })}
