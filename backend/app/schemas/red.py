@@ -1,4 +1,6 @@
 """Contratos de entrada de la API (lo que envía el frontend)."""
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -38,8 +40,8 @@ class ParametrosAG(BaseModel):
     generaciones: int = Field(default=500, ge=1)
     tasa_cruce: float = Field(default=0.8, ge=0, le=1)
     tasa_mutacion: float = Field(default=0.05, ge=0, le=1)
-    seleccion: str = "torneo"
-    tipo_cruce: str = "un_punto"
+    seleccion: Literal["torneo", "ruleta"] = "torneo"
+    tipo_cruce: Literal["un_punto", "dos_puntos"] = "un_punto"
     semilla: int | None = None
 
 

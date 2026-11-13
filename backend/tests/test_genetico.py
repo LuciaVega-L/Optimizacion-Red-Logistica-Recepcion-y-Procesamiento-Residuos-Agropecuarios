@@ -14,7 +14,17 @@ def test_resuelve_problema_pequeno(problema_pequeno):
 
 
 def test_devuelve_historial_de_convergencia(problema_pequeno):
-    """Un valor por generación, y el mejor costo nunca empeora (elitismo)."""
+    """Un valor por generación (de la 0, población inicial, a la última), el mejor costo nunca
+    empeora (elitismo) y el último punto de la curva es el costo de la solución devuelta."""
     res = algoritmo.ejecutar(problema_pequeno, ParametrosAG(poblacion=20, generaciones=25, semilla=3))
-    assert len(res.historial_fitness) == 25
+    assert len(res.historial_fitness) == 25 + 1
     assert all(b <= a + 1e-6 for a, b in zip(res.historial_fitness, res.historial_fitness[1:]))
+    assert abs(res.historial_fitness[-1] - res.costo_total) < 1.0
+
+
+def test_parametros_invalidos_se_rechazan():
+    import pytest
+    from pydantic import ValidationError
+    for malo in ({"seleccion": "ruletta"}, {"tipo_cruce": "tres_puntos"}, {"poblacion": 0}, {"tasa_cruce": 5}):
+        with pytest.raises(ValidationError):
+            ParametrosAG(**malo)

@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react'
 import { listarResultados, obtenerComparativo } from '../../api/historial.js'
 import { useBD } from '../../hooks/useBD.js'
-import { moneda, porcentaje } from '../../utils/formato.js'
+import { moneda, porcentaje, segundos } from '../../utils/formato.js'
 import Aviso from '../comunes/Aviso.jsx'
 import Boton from '../comunes/Boton.jsx'
 import EstadoVacio from '../comunes/EstadoVacio.jsx'
@@ -14,7 +14,7 @@ import Icono from '../comunes/Icono.jsx'
 import Tarjeta from '../comunes/Tarjeta.jsx'
 
 const fecha = (v) => (v ? new Date(v).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }) : '—')
-const ms = (v) => (v == null ? '—' : v < 1000 ? `${Math.round(v)} ms` : `${(v / 1000).toFixed(2)} s`)
+const ms = (v) => (v == null ? '—' : v < 1000 ? `${Math.round(v)} ms` : segundos(v / 1000))
 
 export default function HistorialBD({ limite = 10 }) {
   const bd = useBD()

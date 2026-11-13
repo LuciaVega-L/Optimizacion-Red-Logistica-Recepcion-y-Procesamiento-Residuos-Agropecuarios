@@ -55,11 +55,7 @@ export function FormularioAG({ valores, onCambio, deshabilitado = false }) {
   )
 }
 
-const curvaDeConvergencia = (res) => {
-  if (Array.isArray(res?.historial_fitness) && res.historial_fitness.length) return res.historial_fitness
-  if (Array.isArray(res?.historial) && res.historial.length) return res.historial.map((h) => h.mejorCostoZ)
-  return []
-}
+const curvaDeConvergencia = (res) => res?.historial_fitness ?? []
 
 export default function Genetico() {
   const { problema, errores, resultados, guardarResultado } = useProblema()
@@ -77,10 +73,6 @@ export default function Genetico() {
 
     guardarResultado('genetico', { ...r, parametros })
     notificar(`AG terminado: mejor costo ${moneda(r.costo_total)}`)
-
-    if (curvaDeConvergencia(r).length === 0) {
-      notificar('El backend no devolvió el historial de convergencia (revisa ResultadoGenetico)')
-    }
   }
 
   const exportar = () => {
@@ -130,7 +122,7 @@ export default function Genetico() {
               ? <GraficaConvergencia historial={curva} optimo={optimo ?? null}
                   etiqueta="Mejor costo Z por generación (COP/sem)" />
               : <Aviso tipo="error" titulo="Sin historial de convergencia"
-                  mensajes={['La respuesta del AG no incluyó historial_fitness ni historial.']} />}
+                  mensajes={['La respuesta del AG no incluyó la curva de convergencia.']} />}
           </Tarjeta>
           <Tarjeta titulo="Mejor asignación (t/sem)">
             <TablaMatriz filas={problema.fuentes} columnas={problema.plantas} matriz={res.asignacion}

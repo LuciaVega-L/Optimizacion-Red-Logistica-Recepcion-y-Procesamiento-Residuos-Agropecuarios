@@ -133,8 +133,8 @@ def base_se_mantiene(d_base: DetalleExacto, problema: ProblemaTransporte) -> boo
 
 
 def _ejecutar_ag(problema: ProblemaTransporte, parametros: ParametrosAG | None):
-    """Llama al módulo genético (Rol 3). Si aún no expone ejecutar(problema, parametros),
-    se informa el error sin detener el análisis exacto."""
+    """Resuelve el escenario con el AG. Si el AG falla, se informa el error en ese
+    escenario sin detener el análisis exacto."""
     try:
         from app.services.genetico import algoritmo
         res = algoritmo.ejecutar(problema, parametros or ParametrosAG())
