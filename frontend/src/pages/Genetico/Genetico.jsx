@@ -1,4 +1,3 @@
-// HU3 — Configuración y ejecución del Algoritmo Genético (la lógica del AG es del Rol 3).
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { resolverGenetico } from '../../api/genetico.js'

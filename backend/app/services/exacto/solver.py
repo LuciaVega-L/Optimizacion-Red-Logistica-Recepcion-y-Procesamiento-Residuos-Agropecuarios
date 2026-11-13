@@ -14,12 +14,11 @@ TOL = 1e-6
 
 
 class ProblemaInvalido(ValueError):
-    """Los datos no pasan la validación de la red."""
+    """Los datos no pasan la validación de la red"""
 
 
 @dataclass
 class DetalleExacto:
-    """Información interna que reutiliza el análisis de sensibilidad."""
     resultado: ResultadoExacto
     balanceado: ProblemaBalanceado
     X: list[list[float]]          # flujos en la forma balanceada
@@ -123,5 +122,4 @@ def resolver_detallado(problema: ProblemaTransporte, costo_no_procesado: float =
 
 
 def resolver(problema: ProblemaTransporte, costo_no_procesado: float = 0.0) -> ResultadoExacto:
-    """Resuelve el modelo de transporte, mide el tiempo y extrae precios sombra."""
     return resolver_detallado(problema, costo_no_procesado).resultado

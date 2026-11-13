@@ -1,4 +1,3 @@
-// HU2 — Ejecución del modelo exacto de transporte.
 import { resolverExacto } from '../../api/exacto.js'
 import Aviso from '../../components/comunes/Aviso.jsx'
 import Boton from '../../components/comunes/Boton.jsx'

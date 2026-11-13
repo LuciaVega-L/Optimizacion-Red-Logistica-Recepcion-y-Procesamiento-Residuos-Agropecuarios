@@ -1,8 +1,5 @@
 // Historial guardado en la base de datos:
-//  - por escenario, el último exacto frente al último AG (vista v_historial_comparativo: la
-//    base ya calcula el gap), y
-//  - las últimas ejecuciones guardadas, de la más reciente a la más antigua.
-// Sin base de datos muestra solo un aviso.
+
 import { useEffect, useState } from 'react'
 import { listarResultados, obtenerComparativo } from '../../api/historial.js'
 import { useBD } from '../../hooks/useBD.js'

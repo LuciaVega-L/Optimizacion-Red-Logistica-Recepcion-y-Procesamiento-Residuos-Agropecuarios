@@ -1,14 +1,4 @@
-"""Carga en la base de datos los escenarios JSON de backend/data/escenarios/.
 
-Uso (desde la carpeta backend/, con el .env configurado):
-
-    python -m scripts.sembrar_bd              # carga los que no existan
-    python -m scripts.sembrar_bd --reemplazar # sobrescribe los existentes
-
-Cada archivo <nombre>.json se guarda como el escenario <nombre>;
-dataConfig.json queda marcado como escenario base. Al final se lee cada
-escenario de vuelta y se compara con el archivo para verificar la carga.
-"""
 import argparse
 import json
 import sys

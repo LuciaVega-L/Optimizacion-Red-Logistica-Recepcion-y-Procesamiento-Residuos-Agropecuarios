@@ -1,6 +1,4 @@
-// Esqueletos de carga: muestran la forma del contenido que viene (KPIs, tablas, gráficas)
-// en lugar de dejar la pestaña vacía. Son decorativos (aria-hidden); el texto para lectores
-// de pantalla lo pone el contenedor <Cargando>.
+
 
 export function Esqueleto({ ancho = '100%', alto = '1rem', redondo = false, className = '' }) {
   return (

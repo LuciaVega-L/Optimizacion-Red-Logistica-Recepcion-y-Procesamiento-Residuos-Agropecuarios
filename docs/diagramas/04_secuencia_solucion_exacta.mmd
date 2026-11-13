@@ -1,0 +1,66 @@
+---
+config:
+  theme: base
+  look: classic
+  fontFamily: "Arial, Helvetica, DejaVu Sans, sans-serif"
+  sequence:
+    mirrorActors: false
+    actorMargin: 45
+    messageMargin: 34
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    background: "#ffffff"
+    primaryColor: "#ffffff"
+    primaryTextColor: "#000000"
+    primaryBorderColor: "#000000"
+    secondaryColor: "#ffffff"
+    tertiaryColor: "#ffffff"
+    lineColor: "#000000"
+    textColor: "#000000"
+    mainBkg: "#ffffff"
+    nodeBorder: "#000000"
+    clusterBkg: "#ffffff"
+    clusterBorder: "#000000"
+    edgeLabelBackground: "#ffffff"
+    actorBkg: "#ffffff"
+    actorBorder: "#000000"
+    actorTextColor: "#000000"
+    actorLineColor: "#000000"
+    signalColor: "#000000"
+    signalTextColor: "#000000"
+    labelBoxBkgColor: "#ffffff"
+    labelBoxBorderColor: "#000000"
+    labelTextColor: "#000000"
+    loopTextColor: "#000000"
+    noteBkgColor: "#ffffff"
+    noteBorderColor: "#000000"
+    noteTextColor: "#000000"
+    activationBkgColor: "#ffffff"
+    activationBorderColor: "#000000"
+    sequenceNumberColor: "#ffffff"
+    classText: "#000000"
+---
+sequenceDiagram
+  actor U as Analista logístico
+  participant V@{ "type": "boundary" } as VistaModeloExacto
+  participant C@{ "type": "control" } as ControladorExacto
+  participant S@{ "type": "control" } as SolverExacto
+  participant P@{ "type": "entity" } as ProblemaTransporte
+  participant M@{ "type": "entity" } as ModeloTransporte
+  participant R@{ "type": "entity" } as ResultadoExacto
+
+  U->>V: Presiona "Resolver (Exacto)"
+  V->>C: POST /exacto/resolver(problema)
+  C->>S: resolver(problema)
+  S->>P: validar datos
+  P-->>S: datos válidos
+  S->>M: balancear y construir modelo PL
+  S->>M: resolver con símplex (CBC)
+  M-->>S: flujos x_ij
+  Note over S: Base óptima y precios sombra (MODI)<br/>Verificación de restricciones
+  S->>R: crear(Z*, asignación, precios sombra, tiempo)
+  R-->>S: resultado
+  S-->>C: ResultadoExacto
+  C-->>V: 200 OK (JSON)
+  V-->>U: Muestra Z*, asignación, precios sombra y tiempo

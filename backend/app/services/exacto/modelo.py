@@ -1,20 +1,4 @@
-"""Construcción del modelo PL (conjuntos, variables, FO y restricciones) con PuLP.
 
-El modelo se construye siempre en su forma **balanceada** (HU2):
-
-* Oferta < capacidad → se agrega una agroempresa ficticia
-* Oferta > capacidad → se agrega una planta ficticia con capacidad igual al faltante. 
-* Oferta = capacidad → no se agrega nada.
-
-Forma balanceada (todas las restricciones con igualdad):
-
-    min  Z = Σ_i Σ_j c_ij x_ij
-    s.a. Σ_j x_ij = O_i     ∀ i ∈ I'
-         Σ_i x_ij = D_j     ∀ j ∈ J'
-         x_ij ≥ 0
-
-Tiene el mismo óptimo que el modelo original con capacidades "≤" (sección II-E del informe).
-"""
 import re
 from dataclasses import dataclass, field
 
@@ -92,18 +76,15 @@ def balancear(problema: ProblemaTransporte, costo_no_procesado: float = 0.0) -> 
             fila.append(float(costo_no_procesado))
         ficticio = {"tipo": "planta", "id": id_f, "cantidad": -diferencia}
 
-    # Los índices reales no cambian: la fila o columna ficticia va al final y nunca está cerrada.
     return ProblemaBalanceado(fuentes, plantas, oferta, demanda, costos, n, m, ficticio,
                               problema.indices_deshabilitados())
 
 
 def construir_modelo(problema: ProblemaTransporte, costo_no_procesado: float = 0.0) -> ModeloTransporte:
-    """Crea el LpProblem con variables x_ij, función objetivo y restricciones."""
     b = balancear(problema, costo_no_procesado)
     lp = pulp.LpProblem("Transporte_EcoResiduos", pulp.LpMinimize)
     I, J = range(len(b.fuentes)), range(len(b.plantas))
 
-    # Ruta deshabilitada → cota superior 0 (la variable existe pero no puede llevar flujo)
     x = {(i, j): pulp.LpVariable(f"x_{i}_{j}", lowBound=0, upBound=0 if (i, j) in b.cerradas else None)
          for i in I for j in J}
     lp += pulp.lpSum(b.costos[i][j] * x[i, j] for i in I for j in J), "Costo_total"

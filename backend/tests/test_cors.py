@@ -1,4 +1,3 @@
-"""CORS: el frontend en localhost (cualquier puerto) puede leer la API; un sitio externo no."""
 import pytest
 from fastapi.testclient import TestClient
 

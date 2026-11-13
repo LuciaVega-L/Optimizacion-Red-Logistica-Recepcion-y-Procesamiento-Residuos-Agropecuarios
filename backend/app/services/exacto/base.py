@@ -1,13 +1,4 @@
-"""Base optima del problema de transporte como árbol generador.
 
-En un problema de transporte balanceado de n' fuentes y m' plantas, una solución básica
-tiene n' + m' - 1 variables básicas que forman un árbol entre filas ("r", i) y columnas ("c", j).
-Con ese árbol se obtienen:
-
-* los duales u_i, v_j resolviendo c_ij = u_i + v_j sobre las celdas básicas;
-* los rangos de costos (qué celdas no básicas cambian de costo reducido al mover c_ij);
-* los rangos de oferta/capacidad (por qué camino del árbol se redistribuye el flujo).
-"""
 from collections import deque
 
 TOL = 1e-6
@@ -32,8 +23,7 @@ class UnionFind:
 
 
 def construir_base(X, costos, u0=None, v0=None, tol: float = TOL, prohibidas=()) -> list[tuple[int, int]]:
-    """Celdas básicas: las de flujo positivo y, si la solución es degenerada, se completan
-    con celdas de costo reducido ~0 (según los duales del solver u0, v0) sin formar ciclos."""
+  
     n, m = len(X), len(X[0])
     uf = UnionFind([("r", i) for i in range(n)] + [("c", j) for j in range(m)])
     base = []
@@ -61,7 +51,6 @@ def construir_base(X, costos, u0=None, v0=None, tol: float = TOL, prohibidas=())
 
 
 def duales_desde_base(base, costos, n, m, fijo=("r", 0)):
-    """Resuelve u_i + v_j = c_ij en el árbol, con el dual del nodo `fijo` igual a 0."""
     ady = adyacencia(base)
     valor = {fijo: 0.0}
     cola = deque([fijo])
@@ -85,7 +74,6 @@ def adyacencia(base):
 
 
 def componente_sin_celda(base, celda, inicio):
-    """Nodos alcanzables desde `inicio` al quitar `celda` del árbol."""
     ady = adyacencia([c for c in base if c != celda])
     vistos, cola = {inicio}, deque([inicio])
     while cola:
@@ -98,8 +86,7 @@ def componente_sin_celda(base, celda, inicio):
 
 
 def camino(base, origen, destino):
-    """Celdas del camino del árbol entre dos nodos, con el signo del cambio de flujo al
-    empujar +δ de `origen` a `destino` (fila→columna suma, columna→fila resta)."""
+
     ady = adyacencia(base)
     previo = {origen: None}
     cola = deque([origen])
@@ -123,8 +110,7 @@ def camino(base, origen, destino):
 
 
 def flujos_desde_base(base, oferta, demanda):
-    """Resuelve los flujos de las celdas básicas para una oferta/demanda dadas (balanceadas)
-    quitando hojas del árbol. Si algún flujo sale negativo, esa base ya no es factible."""
+
     restante = {("r", i): float(o) for i, o in enumerate(oferta)}
     restante.update({("c", j): float(d) for j, d in enumerate(demanda)})
     ady = {nodo: set() for nodo in restante}

@@ -1,0 +1,62 @@
+---
+config:
+  theme: base
+  look: classic
+  fontFamily: "Arial, Helvetica, DejaVu Sans, sans-serif"
+  layout: elk
+  elk:
+    nodePlacementStrategy: BRANDES_KOEPF
+  flowchart:
+    curve: linear
+    nodeSpacing: 40
+    rankSpacing: 45
+    wrappingWidth: 320
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    background: "#ffffff"
+    primaryColor: "#ffffff"
+    primaryTextColor: "#000000"
+    primaryBorderColor: "#000000"
+    secondaryColor: "#ffffff"
+    tertiaryColor: "#ffffff"
+    lineColor: "#000000"
+    textColor: "#000000"
+    mainBkg: "#ffffff"
+    nodeBorder: "#000000"
+    clusterBkg: "#ffffff"
+    clusterBorder: "#000000"
+    edgeLabelBackground: "#ffffff"
+    actorBkg: "#ffffff"
+    actorBorder: "#000000"
+    actorTextColor: "#000000"
+    actorLineColor: "#000000"
+    signalColor: "#000000"
+    signalTextColor: "#000000"
+    labelBoxBkgColor: "#ffffff"
+    labelBoxBorderColor: "#000000"
+    labelTextColor: "#000000"
+    loopTextColor: "#000000"
+    noteBkgColor: "#ffffff"
+    noteBorderColor: "#000000"
+    noteTextColor: "#000000"
+    activationBkgColor: "#ffffff"
+    activationBorderColor: "#000000"
+    sequenceNumberColor: "#ffffff"
+    classText: "#000000"
+---
+flowchart TB
+  A([Inicio]) --> B["Cargar la red logística<br/>(agroempresas, plantas, distancias)"]
+  B --> C["Calcular costos unitarios<br/>c_ij = c_u · d_ij + c_j^op"]
+  C --> D{"¿Datos válidos?"}
+  D -- No --> E["Mostrar errores<br/>al usuario"]
+  E --> Z([Fin])
+  D -- Sí --> F{"¿Oferta total =<br/>capacidad total?"}
+  F -- No --> G["Agregar nodo ficticio<br/>(agroempresa o planta)"]
+  G --> H
+  F -- Sí --> H["Construir modelo de transporte<br/>(programación lineal en PuLP)"]
+  H --> I["Resolver con el método símplex<br/>(solver CBC)"]
+  I --> J["Construir la base óptima y calcular<br/>precios sombra u_i, v_j (MODI)"]
+  J --> K["Verificar restricciones de oferta,<br/>capacidad y no negatividad"]
+  K --> L["Mostrar Z*, asignación x_ij,<br/>precios sombra y tiempo"]
+  L --> Z

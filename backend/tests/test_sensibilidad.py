@@ -38,7 +38,6 @@ def test_variacion_de_una_planta(caso_base):
 
 
 def test_precio_sombra_dentro_del_rango(caso_base):
-    """Dentro del rango permitido, ΔZ* = precio sombra × Δ."""
     z0 = resolver(caso_base).costo_total
     r = analisis.rangos(caso_base)
     p1 = r["capacidad"][0]

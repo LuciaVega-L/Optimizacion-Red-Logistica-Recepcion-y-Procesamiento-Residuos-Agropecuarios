@@ -1,7 +1,4 @@
 // La red sobre un mapa real del Meta (Leaflet + teselas de OpenStreetMap, sin llave de API).
-// Mismas entradas que GrafoRed: sin asignación dibuja todas las rutas posibles; con asignación,
-// solo las rutas con flujo > 0, con grosor proporcional a las toneladas.
-// Las líneas son rectas entre cabeceras municipales; la distancia mostrada es la de la matriz.
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'

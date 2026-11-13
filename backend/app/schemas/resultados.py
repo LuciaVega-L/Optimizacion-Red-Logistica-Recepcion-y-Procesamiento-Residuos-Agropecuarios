@@ -1,4 +1,3 @@
-"""Contratos de salida de la API (lo que recibe el frontend)."""
 from pydantic import BaseModel
 
 
@@ -12,8 +11,8 @@ class Solucion(BaseModel):
 
 class VerificacionRestriccion(BaseModel):
     """Una fila de la tabla ✔/✘ de restricciones (HU2)."""
-    restriccion: str          # p. ej. "Oferta E01", "Capacidad P3", "No negatividad"
-    tipo: str                 # "oferta" | "capacidad" | "no_negatividad"
+    restriccion: str          
+    tipo: str                 
     lado_izquierdo: float
     operador: str             # "=", "≤", "≥"
     lado_derecho: float
@@ -22,10 +21,10 @@ class VerificacionRestriccion(BaseModel):
 
 class NodoFicticio(BaseModel):
     """Nodo agregado para balancear la red (HU2)."""
-    tipo: str                 # "fuente" (sobra capacidad) | "planta" (falta capacidad)
+    tipo: str                 # "fuente" 
     id: str
-    cantidad: float           # oferta o capacidad del nodo ficticio (t/sem)
-    flujos: list[float]       # hacia cada planta (si es fuente) o desde cada fuente (si es planta)
+    cantidad: float           # oferta o capacidad del nodo ficticio 
+    flujos: list[float]       # hacia cada planta 
 
 
 class ResultadoExacto(Solucion):
@@ -39,7 +38,7 @@ class ResultadoExacto(Solucion):
     nodo_ficticio: NodoFicticio | None = None
     variables_basicas: list[str] = []
     degenerada: bool = False
-    # Rutas no básicas con costo reducido 0: existen otras asignaciones con el mismo Z*.
+    # Rutas no básicas con costo reducido 0
     rutas_optimo_alternativo: list[str] = []
     optimalidad_verificada: bool = False
     verificacion: list[VerificacionRestriccion] = []

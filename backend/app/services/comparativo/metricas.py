@@ -1,5 +1,3 @@
-"""Métricas de comparación."""
-
 
 def gap_porcentual(costo_ag: float, costo_optimo: float) -> float:
     if costo_optimo == 0:

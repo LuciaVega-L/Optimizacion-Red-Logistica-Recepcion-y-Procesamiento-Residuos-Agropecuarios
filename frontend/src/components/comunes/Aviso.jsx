@@ -1,5 +1,4 @@
-// Mensajes en línea. tipo: 'error' | 'info' | 'ok' | 'alerta'
-// onReintentar: muestra un botón para repetir la acción que falló.
+
 import Icono from './Icono.jsx'
 
 const ICONOS = { error: 'error', info: 'info', ok: 'ok', alerta: 'alerta' }

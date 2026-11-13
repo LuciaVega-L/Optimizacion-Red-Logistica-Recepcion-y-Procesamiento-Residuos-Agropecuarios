@@ -1,4 +1,3 @@
-"""Genera el reporte comparativo: costos, tiempos y gap."""
 from app.schemas.red import ParametrosAG, ProblemaTransporte
 from app.schemas.resultados import ReporteComparativo
 from app.services.comparativo.metricas import gap_porcentual

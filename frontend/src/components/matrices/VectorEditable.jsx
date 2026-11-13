@@ -1,5 +1,4 @@
-// Tabla editable de entidades (agroempresas o plantas): una fila por entidad.
-// columnas: [{ clave, titulo, tipo: 'texto' | 'numero', ancho }]
+
 import Icono from '../comunes/Icono.jsx'
 
 export default function VectorEditable({ elementos, columnas, onCambio, onEliminar, minimo = 1 }) {

@@ -1,8 +1,4 @@
-"""Pruebas del módulo exacto.
 
-El caso base (dataConfig.json) sirve de prueba automática: si cambian los datos o el modelo,
-estos valores dejan de coincidir con las tablas del informe y el test falla.
-"""
 import pytest
 
 from app.schemas.red import ProblemaTransporte

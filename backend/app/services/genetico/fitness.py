@@ -1,11 +1,3 @@
-"""Función objetivo del AG.
-
-Z(X) = Σ_ij c_ij·x_ij + λ_o·Σ_i max(0, Σ_j x_ij − o_i)² + λ_d·Σ_j max(0, Σ_i x_ij − d_j)²
-
-c_ij viene de "matriz_costos", armada por el adaptador desde el modelo exacto (balancear),
-así que el AG y el solver exacto optimizan EXACTAMENTE el mismo Z. c_ij ya incluye el costo
-operativo de la planta.
-"""
 
 TOL_TON = 1e-6   # tolerancia de factibilidad, en toneladas de exceso
 
@@ -17,8 +9,7 @@ class EvaluadorFitness:
         self.agroempresas = datosRed.get("agroempresas", [])
         self.matrizCostos = datosRed["matriz_costos"]   # n x m, en el orden de agroempresas y plantas
 
-        # El λ por defecto escala con el costo unitario máximo, para que violar una
-        # restricción nunca resulte "rentable" frente al ahorro de ruta.
+
         porDefecto = max(1000.0, max((max(f) for f in self.matrizCostos), default=0.0))
         penalizaciones = datosRed.get("penalizaciones", {})
         self.lambdaOferta = float(penalizaciones.get("factorPlanta", porDefecto))
@@ -54,14 +45,12 @@ class EvaluadorFitness:
         penalizacionOferta = self.lambdaOferta * sum(e ** 2 for e in exO)
         penalizacionDemanda = self.lambdaDemanda * sum(e ** 2 for e in exD)
 
-        # Toneladas por rutas deshabilitadas: la reparación las deja en 0; si quedara algo, se penaliza
+        # Toneladas por rutas deshabilitadas
         flujoProhibido = sum(float(cromosoma[i][j]) for i, j in self.prohibidas)
         penalizacionRutas = self.lambdaDemanda * flujoProhibido ** 2
 
         costoTotalZ = costoRutas + penalizacionOferta + penalizacionDemanda + penalizacionRutas
         fitness = 1.0 / (1.0 + costoTotalZ)
-        # Factible = ninguna restricción excedida (más allá de ruido numérico).
-        # Se mide en toneladas: el umbral sobre la penalización dependía de λ y de la escala de Z.
         esFactible = (sum(exO) <= TOL_TON) and (sum(exD) <= TOL_TON) and flujoProhibido <= TOL_TON
 
         return {

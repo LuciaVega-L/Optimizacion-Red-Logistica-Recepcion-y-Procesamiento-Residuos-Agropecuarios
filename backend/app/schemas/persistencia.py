@@ -1,4 +1,3 @@
-"""Contratos de la API para guardar y consultar escenarios y resultados en la base de datos."""
 from datetime import datetime
 from typing import Any
 
@@ -55,7 +54,7 @@ class EscenarioResumen(BaseModel):
     variaciones: dict[str, Any] = {}
 
 
-# ------------------------------------------------------------------ resultados
+# resultados
 class ResultadoGuardar(BaseModel):
     escenario: str = Field(..., description="Nombre del escenario resuelto", examples=["dataConfig"])
     algoritmo_utilizado: str = Field(..., examples=["Exacto", "Genético"])

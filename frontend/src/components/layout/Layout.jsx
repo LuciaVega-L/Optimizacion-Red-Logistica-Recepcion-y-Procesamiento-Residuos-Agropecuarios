@@ -20,7 +20,6 @@ export default function Layout() {
   const primeraVez = useRef(true)
 
   // Al cambiar de pestaña: cerrar el menú móvil, actualizar el título del navegador y llevar
-  // el foco al contenido para que los lectores de pantalla anuncien la página nueva.
   useEffect(() => {
     setMenuAbierto(false)
     const actual = enlaces.find(([ruta]) => ruta === pathname)?.[1]

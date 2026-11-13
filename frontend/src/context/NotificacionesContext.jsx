@@ -1,5 +1,4 @@
-// Notificaciones breves (toasts) para confirmar que una acción terminó: "Solución lista", "CSV descargado"…
-// Se anuncian a lectores de pantalla con aria-live y desaparecen solas.
+// Notificaciones breves (toasts) para confirmar que una acción terminó: "Solución lista", "CSV descargado
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
 import Icono from '../components/comunes/Icono.jsx'
 

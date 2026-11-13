@@ -1,14 +1,11 @@
-"""Operadores genéticos: selección (ruleta/torneo), cruce (1 y 2 puntos) y mutación."""
 
 def seleccion_torneo(poblacion, aptitudes, k, rng):
-    """Elige k individuos al azar y devuelve una copia del de mayor aptitud."""
     candidatos = rng.sample(range(len(poblacion)), min(k, len(poblacion)))
     ganador = max(candidatos, key=lambda idx: aptitudes[idx])
     return [fila[:] for fila in poblacion[ganador]]
 
 
 def seleccion_ruleta(poblacion, aptitudes, rng):
-    """Selección proporcional a la aptitud; devuelve una copia del individuo."""
     total = sum(aptitudes)
     if total <= 0.0:
         idx = rng.randrange(len(poblacion))
@@ -25,7 +22,6 @@ def seleccion_ruleta(poblacion, aptitudes, rng):
 
 
 def cruce_un_punto(padre1, padre2, rng):
-    """Corta entre empresas en un punto: hijo1 = p1[:c] + p2[c:], hijo2 = p2[:c] + p1[c:]."""
     n = len(padre1)
     if n < 2:
         return [f[:] for f in padre1], [f[:] for f in padre2]
@@ -36,7 +32,6 @@ def cruce_un_punto(padre1, padre2, rng):
 
 
 def cruce_dos_puntos(padre1, padre2, rng):
-    """Intercambia el tramo de empresas [c1, c2) entre los padres."""
     n = len(padre1)
     if n < 3:
         return cruce_un_punto(padre1, padre2, rng)
@@ -47,10 +42,7 @@ def cruce_dos_puntos(padre1, padre2, rng):
 
 
 def mutar(individuo, tasa, rng):
-    """
-    Con probabilidad `tasa` por empresa, traslada una fracción de sus toneladas
-    de una planta a otra. Conserva la suma de la fila (la oferta).
-    """
+
     for fila in individuo:
         if rng.random() >= tasa or len(fila) < 2:
             continue

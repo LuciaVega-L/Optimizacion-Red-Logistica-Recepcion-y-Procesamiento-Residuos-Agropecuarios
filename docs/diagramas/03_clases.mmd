@@ -1,0 +1,166 @@
+---
+config:
+  theme: base
+  look: classic
+  fontFamily: "Arial, Helvetica, DejaVu Sans, sans-serif"
+  class:
+    curve: linear
+  themeVariables:
+    fontFamily: "Arial, Helvetica, sans-serif"
+    fontSize: "14px"
+    background: "#ffffff"
+    primaryColor: "#ffffff"
+    primaryTextColor: "#000000"
+    primaryBorderColor: "#000000"
+    secondaryColor: "#ffffff"
+    tertiaryColor: "#ffffff"
+    lineColor: "#000000"
+    textColor: "#000000"
+    mainBkg: "#ffffff"
+    nodeBorder: "#000000"
+    clusterBkg: "#ffffff"
+    clusterBorder: "#000000"
+    edgeLabelBackground: "#ffffff"
+    actorBkg: "#ffffff"
+    actorBorder: "#000000"
+    actorTextColor: "#000000"
+    actorLineColor: "#000000"
+    signalColor: "#000000"
+    signalTextColor: "#000000"
+    labelBoxBkgColor: "#ffffff"
+    labelBoxBorderColor: "#000000"
+    labelTextColor: "#000000"
+    loopTextColor: "#000000"
+    noteBkgColor: "#ffffff"
+    noteBorderColor: "#000000"
+    noteTextColor: "#000000"
+    activationBkgColor: "#ffffff"
+    activationBorderColor: "#000000"
+    sequenceNumberColor: "#ffffff"
+    classText: "#000000"
+---
+classDiagram
+  direction TB
+  class ProblemaTransporte {
+    <<entidad>>
+    +fuentes: list~str~
+    +plantas: list~str~
+    +oferta: list~float~
+    +demanda: list~float~
+    +costos: list~list~float~~
+    +rutas_deshabilitadas: list
+  }
+  class ParametrosAG {
+    <<entidad>>
+    +poblacion: int
+    +generaciones: int
+    +tasa_cruce: float
+    +tasa_mutacion: float
+    +seleccion: str
+    +tipo_cruce: str
+    +semilla: int
+  }
+  class Escenario {
+    <<entidad>>
+    +nombre: str
+    +variacion_costos_pct: float
+    +variacion_oferta_pct: float
+    +variacion_demanda_pct: float
+  }
+  class ProblemaBalanceado {
+    <<entidad>>
+    +oferta: list~float~
+    +demanda: list~float~
+    +costos: list~list~float~~
+    +ficticio: NodoFicticio
+  }
+  class ModeloTransporte {
+    <<entidad>>
+    +lp: LpProblem
+    +x: dict
+    +r_oferta: list
+    +r_demanda: list
+  }
+  class Solucion {
+    <<abstracta>>
+    +metodo: str
+    +costo_total: float
+    +asignacion: list~list~float~~
+    +tiempo_s: float
+    +factible: bool
+  }
+  class ResultadoExacto {
+    <<entidad>>
+    +precios_sombra_oferta: list~float~
+    +precios_sombra_demanda: list~float~
+    +costos_reducidos: list
+    +verificacion: list
+  }
+  class ResultadoGenetico {
+    <<entidad>>
+    +historial_fitness: list~float~
+  }
+  class RepositorioRed {
+    <<control>>
+    +cargar_escenario(nombre) dict
+    +a_problema(config) ProblemaTransporte
+  }
+  class SolverExacto {
+    <<control>>
+    +resolver(problema) ResultadoExacto
+    +balancear(problema) ProblemaBalanceado
+    +construir_modelo(problema) ModeloTransporte
+  }
+  class AlgoritmoGenetico {
+    <<control>>
+    +tamanoPoblacion: int
+    +generaciones: int
+    +probCruce: float
+    +probMutacion: float
+    +ejecutar() dict
+  }
+  class FabricaCromosomas {
+    <<control>>
+    +crearPoblacion(tamano) list
+    +reparar(cromosoma) list
+  }
+  class EvaluadorFitness {
+    <<control>>
+    +evaluarIndividuo(cromosoma) dict
+  }
+  class OperadoresGeneticos {
+    <<control>>
+    +seleccion_torneo()
+    +seleccion_ruleta()
+    +cruce_un_punto()
+    +cruce_dos_puntos()
+    +mutar()
+  }
+  class AnalizadorSensibilidad {
+    <<control>>
+    +rangos(problema) dict
+    +simular(problema, escenarios) dict
+  }
+  class GeneradorReporte {
+    <<control>>
+    +generar(problema, parametros)
+    +comparar_tamanos(tamanos)
+  }
+
+  Solucion <|-- ResultadoExacto
+  Solucion <|-- ResultadoGenetico
+  RepositorioRed ..> ProblemaTransporte : crea
+  SolverExacto ..> ProblemaTransporte : usa
+  SolverExacto ..> ModeloTransporte : construye
+  ModeloTransporte o-- ProblemaBalanceado
+  SolverExacto ..> ResultadoExacto : produce
+  AlgoritmoGenetico ..> ParametrosAG : usa
+  AlgoritmoGenetico ..> ProblemaBalanceado : usa
+  AlgoritmoGenetico *-- FabricaCromosomas
+  AlgoritmoGenetico *-- EvaluadorFitness
+  AlgoritmoGenetico ..> OperadoresGeneticos : usa
+  AlgoritmoGenetico ..> ResultadoGenetico : produce
+  AnalizadorSensibilidad ..> Escenario : aplica
+  AnalizadorSensibilidad ..> SolverExacto : usa
+  GeneradorReporte ..> SolverExacto : usa
+  GeneradorReporte ..> AlgoritmoGenetico : usa

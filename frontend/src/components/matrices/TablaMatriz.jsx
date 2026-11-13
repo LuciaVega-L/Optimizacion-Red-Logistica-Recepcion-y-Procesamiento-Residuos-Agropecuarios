@@ -1,4 +1,4 @@
-// Matriz de solo lectura (costos, asignación). resaltar(v) marca celdas, p. ej. flujos > 0.
+// Matriz de solo lectura (costos, asignación). resaltar(v) marca celdas
 import { numero } from '../../utils/formato.js'
 
 export default function TablaMatriz({ filas, columnas, matriz, formato = numero, resaltar,

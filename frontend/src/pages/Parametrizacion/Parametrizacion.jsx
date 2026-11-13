@@ -1,4 +1,3 @@
-// HU1 — Parametrización dinámica de la red: agroempresas, plantas, distancias y coeficientes.
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarEscenarios } from '../../api/red.js'

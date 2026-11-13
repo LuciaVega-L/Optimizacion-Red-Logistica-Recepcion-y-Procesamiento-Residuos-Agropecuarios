@@ -1,4 +1,3 @@
-"""Comparativo por tamaño de red (HU5): exacto vs. AG en redes de 10, 20, 50 y 100 fuentes."""
 import os
 import statistics
 from concurrent.futures import ProcessPoolExecutor
@@ -14,9 +13,7 @@ TAMANOS_POR_DEFECTO = [(10, 4), (20, 4), (50, 6), (100, 10)]
 
 
 def _correr_semillas(problema, parametros_ag: ParametrosAG | None, semillas: list[int]) -> list:
-    """Corre el AG con cada semilla. Las corridas son independientes, así que van en procesos
-    paralelos (el AG es Python puro: los hilos no lo acelerarían). Si no se pueden crear
-    procesos, se corren una tras otra. Devuelve [(resultado | None, error | None), ...]."""
+   
     lista = [(parametros_ag or ParametrosAG()).model_copy(update={"semilla": s}) for s in semillas]
     trabajadores = min(len(lista), os.cpu_count() or 1)
     if trabajadores > 1:
@@ -31,8 +28,7 @@ def _correr_semillas(problema, parametros_ag: ParametrosAG | None, semillas: lis
 def comparar_tamanos(tamanos=None, parametros_ag: ParametrosAG | None = None,
                      incluir_ag: bool = True, semillas_ag: list[int] | None = None,
                      semilla_red: int = 42) -> list[dict]:
-    """Para cada (n_fuentes, n_plantas) genera una red, la resuelve con el exacto y con el AG
-    (varias semillas) y reporta costo, tiempo y gap."""
+   
     tamanos = tamanos or TAMANOS_POR_DEFECTO
     semillas_ag = semillas_ag or [1, 2, 3]
     filas = []
