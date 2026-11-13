@@ -2,10 +2,8 @@
 
 El modelo se construye siempre en su forma **balanceada** (HU2):
 
-* Oferta < capacidad → se agrega una agroempresa ficticia (p. ej. E11) con oferta igual a la
-  capacidad sobrante y costo 0. Su flujo hacia la planta j es la capacidad ociosa de j.
-* Oferta > capacidad → se agrega una planta ficticia con capacidad igual al faltante. Su flujo
-  es residuo que no se puede procesar (costo `costo_no_procesado`, 0 por defecto).
+* Oferta < capacidad → se agrega una agroempresa ficticia
+* Oferta > capacidad → se agrega una planta ficticia con capacidad igual al faltante. 
 * Oferta = capacidad → no se agrega nada.
 
 Forma balanceada (todas las restricciones con igualdad):
@@ -37,6 +35,7 @@ class ProblemaBalanceado:
     n_real: int                    # número de fuentes reales
     m_real: int                    # número de plantas reales
     ficticio: dict | None = None   # {"tipo": "fuente"|"planta", "id": str, "cantidad": float}
+    cerradas: set = field(default_factory=set)   # (i, j) de rutas deshabilitadas: x_ij = 0
 
     @property
     def indice_ficticio(self) -> tuple[str, int] | None:
@@ -58,7 +57,6 @@ class ModeloTransporte:
 
 
 def siguiente_id(ids: list[str], respaldo: str) -> str:
-    """E01..E10 -> E11 ; P1..P4 -> P5 ; si los ids no siguen un patrón, usa `respaldo`."""
     partes = [re.fullmatch(r"([A-Za-z_]*)(\d+)", x) for x in ids]
     if ids and all(partes) and len({p.group(1) for p in partes}) == 1:
         prefijo = partes[0].group(1)
@@ -94,7 +92,9 @@ def balancear(problema: ProblemaTransporte, costo_no_procesado: float = 0.0) -> 
             fila.append(float(costo_no_procesado))
         ficticio = {"tipo": "planta", "id": id_f, "cantidad": -diferencia}
 
-    return ProblemaBalanceado(fuentes, plantas, oferta, demanda, costos, n, m, ficticio)
+    # Los índices reales no cambian: la fila o columna ficticia va al final y nunca está cerrada.
+    return ProblemaBalanceado(fuentes, plantas, oferta, demanda, costos, n, m, ficticio,
+                              problema.indices_deshabilitados())
 
 
 def construir_modelo(problema: ProblemaTransporte, costo_no_procesado: float = 0.0) -> ModeloTransporte:
@@ -103,7 +103,9 @@ def construir_modelo(problema: ProblemaTransporte, costo_no_procesado: float = 0
     lp = pulp.LpProblem("Transporte_EcoResiduos", pulp.LpMinimize)
     I, J = range(len(b.fuentes)), range(len(b.plantas))
 
-    x = {(i, j): pulp.LpVariable(f"x_{i}_{j}", lowBound=0) for i in I for j in J}
+    # Ruta deshabilitada → cota superior 0 (la variable existe pero no puede llevar flujo)
+    x = {(i, j): pulp.LpVariable(f"x_{i}_{j}", lowBound=0, upBound=0 if (i, j) in b.cerradas else None)
+         for i in I for j in J}
     lp += pulp.lpSum(b.costos[i][j] * x[i, j] for i in I for j in J), "Costo_total"
 
     r_oferta, r_demanda = [], []

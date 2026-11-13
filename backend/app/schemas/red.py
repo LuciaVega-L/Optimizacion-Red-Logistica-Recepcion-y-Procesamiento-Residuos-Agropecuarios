@@ -16,6 +16,22 @@ class ProblemaTransporte(BaseModel):
     costo_km_ton: float | None = Field(None, description="COP / (km·ton)")
     costo_operativo: list[float] | None = Field(None, description="COP / ton por planta")
 
+    # Rutas cerradas (vía en mal estado, sin convenio...): pares [agroempresa, planta].
+    # Ningún método puede enviar flujo por ellas. Mismo formato que dataConfig.json y la BD.
+    rutas_deshabilitadas: list[tuple[str, str]] = Field(default_factory=list,
+                                                       description="Pares [fuente, planta] cerrados")
+
+    # Penalizaciones del AG (λ por tonelada² de exceso). None = el AG usa su valor por defecto.
+    # Vienen de "penalizaciones" en dataConfig.json (factorPlanta = oferta, factorDemanda = capacidad).
+    penalizacion_oferta: float | None = Field(None, description="λ de exceso de oferta (AG)")
+    penalizacion_capacidad: float | None = Field(None, description="λ de exceso de capacidad (AG)")
+
+    def indices_deshabilitados(self) -> set[tuple[int, int]]:
+        """Pares (i, j) de rutas cerradas, en el orden de fuentes y plantas."""
+        fi = {f: i for i, f in enumerate(self.fuentes)}
+        pj = {p: j for j, p in enumerate(self.plantas)}
+        return {(fi[f], pj[p]) for f, p in self.rutas_deshabilitadas if f in fi and p in pj}
+
 
 class ParametrosAG(BaseModel):
     poblacion: int = 100

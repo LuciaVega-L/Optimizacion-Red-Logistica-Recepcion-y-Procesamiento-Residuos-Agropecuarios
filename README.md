@@ -1,119 +1,205 @@
 # EcoResiduos del Llano — Sistema de Optimización Logística
 
-Proyecto final de **Optimización (2026-II), Universidad de los Llanos**.
+Proyecto final de **Optimización (2026-II)**, Programa de Ingeniería de Sistemas, **Universidad de los Llanos**.
 
-Sistema web para minimizar el costo de transporte de residuos agropecuarios desde
-**10 agroempresas** hacia **4 plantas** (Villavicencio, Restrepo, Granada y Puerto Gaitán),
-comparando un **modelo exacto** (programación lineal / transporte) con un **Algoritmo Genético**,
-e incluyendo **análisis de sensibilidad** y **reporte comparativo**.
+Sistema web que minimiza el costo semanal de transportar residuos agropecuarios desde **10 agroempresas** hasta **4 plantas** (Villavicencio, Restrepo, Granada y Puerto Gaitán). Resuelve el problema con un **modelo exacto** de programación lineal (problema de transporte) y con un **algoritmo genético**, y además incluye **análisis de sensibilidad** y un **reporte comparativo** entre los dos métodos.
+
+## Estado del proyecto
+
+| Módulo | Estado | Observación |
+|---|---|---|
+| Red y parametrización | ✅ Listo | Carga, edición, validación y balanceo de la red |
+| Modelo exacto | ✅ Listo | PuLP + CBC, precios sombra, verificación de restricciones |
+| Algoritmo genético | ✅ Listo | Conectado a la API con `ejecutar(problema, parametros)`; selección por torneo o ruleta, cruce de uno o dos puntos |
+| Análisis de sensibilidad | ✅ Listo | Rangos de la base óptima y simulación de escenarios |
+| Reporte comparativo | ✅ Listo | Exacto vs. AG: costo, tiempo, gap y escalabilidad |
+| Base de datos (Supabase) | ✅ Listo | Historial de escenarios y resultados |
+| Informe IEEE | 🟡 En progreso | En `docs/informe-ieee/` |
+
+Pruebas: **62 pasan**, ninguna omitida.
+
+## Equipo y roles
+
+| Rol | Integrante | Responsabilidad |
+|---|---|---|
+| 1. Líder de proyecto / Analista de negocio | Lucia Vega | Coordinación, informe IEEE, validación del modelo de negocio |
+| 2. Ingeniero de modelado y optimización | Emmanuel Camacho | Formulación matemática y solver exacto |
+| 3. Desarrollador de metaheurísticas | Astrid Martinez | Algoritmo genético |
+| 4. Desarrollador de software e interfaz | Samuel Martinez | Arquitectura, interfaz, sensibilidad y reportes |
+
+## Modelo matemático
+
+- **Conjuntos:** agroempresas *i* ∈ I (fuentes) y plantas *j* ∈ J (destinos).
+- **Parámetros:**
+  - oferta *Oᵢ* (t/semana)
+  - capacidad *Dⱼ* (t/semana)
+  - costo unitario *cᵢⱼ* = distancia(*i*, *j*) × costo por km·ton + costo operativo de la planta *j*, en COP/t
+- **Variable:** *xᵢⱼ* = toneladas por semana que van de *i* a *j*.
+- **Función objetivo:** min Z = Σᵢ Σⱼ cᵢⱼ · xᵢⱼ
+- **Restricciones:** oferta, capacidad y no negatividad.
+
+Si la oferta total no es igual a la capacidad total, el sistema balancea la red con un nodo ficticio:
+
+- una **agroempresa ficticia** con costo 0 si sobra capacidad;
+- una **planta ficticia**, que representa el residuo no procesado, si falta capacidad.
+
+Con el caso base el resultado es **Z\* = 132.532.000 COP/semana**, con la agroempresa ficticia E11 (oferta 1.540 t/sem, capacidad 1.700 t/sem, holgura de 160 t/sem en Puerto Gaitán).
+
+## Algoritmo genético
+
+- **Cromosoma:** matriz de flujos *X* (empresas × plantas) en toneladas/semana, trabajada sobre la **misma red balanceada** que usa el solver exacto (incluye el nodo ficticio). Así ambos métodos resuelven el mismo problema y el gap es comparable.
+- **Factibilidad:** cada fila se reescala para sumar exactamente su oferta, y un operador de **reparación** mueve el exceso de las plantas saturadas hacia las que tienen holgura (las más baratas primero). La **penalización cuadrática** queda como respaldo.
+- **Aptitud:** `fitness = 1 / (1 + Z)`, con Z = costo + penalizaciones. La selección compara Z directamente.
+- **Operadores:** selección por torneo o ruleta, cruce de uno o dos puntos y mutación que traslada toneladas de una planta a otra dentro de la misma empresa (conserva la oferta).
+- **Parámetros ajustables desde la interfaz:** población (100), generaciones (500), tasa de cruce (0,8), tasa de mutación (0,05), tipo de selección, tipo de cruce y semilla.
+- **Calidad:** el gap se calcula como (Z_AG − Z_exacto) / Z_exacto × 100. Con los parámetros por defecto y semilla 1 el caso base da 134.370.550 COP/semana (gap ≈ 1,39 %).
 
 ## Arquitectura
 
 ```
-Navegador (React + Vite)  ──HTTP/JSON──►  API REST (FastAPI, Python)
-   parametrización                          ├── services/exacto        (PuLP / SciPy)
-   visualización de red                     ├── services/genetico      (AG propio)
-   gráficas y reportes                      ├── services/sensibilidad  (escenarios, duales)
-                                            └── services/comparativo   (gap, tiempos)
+Navegador (React + Vite)  ──HTTP/JSON──►  API REST (FastAPI, Python)  ──SQLAlchemy──►  PostgreSQL (Supabase)
+   parametrización                          ├── services/red           (carga, validación, balance)
+   resultados y gráficas                    ├── services/exacto        (PuLP + CBC, duales)
+   sensibilidad y comparativo               ├── services/genetico      (AG propio)
+                                            ├── services/sensibilidad  (rangos y escenarios)
+                                            └── services/comparativo   (gap, tiempos, escalabilidad)
 ```
+
+Sin base de datos, el sistema lee los escenarios de `backend/data/escenarios/*.json` (`FUENTE_DATOS=json`).
+
+## Requerimientos no funcionales
+
+- **Rendimiento:** el modelo exacto resuelve el caso base en menos de 1 segundo y el AG con parámetros por defecto en pocos segundos.
+- **Usabilidad:** interfaz web con una página por módulo y mensajes de error claros ante datos inválidos.
+- **Confiabilidad:** resultados reproducibles (el AG acepta semilla) y pruebas automáticas con pytest.
+- **Portabilidad:** funciona en cualquier navegador moderno y en Windows, Linux o Mac (Python 3.11+, Node.js 18+).
+- **Mantenibilidad:** código dividido en módulos independientes por responsabilidad.
+- **Disponibilidad de datos:** puede funcionar sin base de datos, leyendo el caso base desde JSON.
 
 ## Estructura del repositorio
 
 ```
-ecoresiduos-optimizacion/
-├── contexto/            Enunciado y material de referencia del curso
-├── docs/                Informe IEEE, diagramas, formulación matemática
-├── backend/             API REST + módulos de optimización (Python)
+├── contexto/             Enunciado del proyecto
+├── docs/                 Informe IEEE, diagramas, formulación y guía de la base de datos
+├── supabase/             Scripts SQL (tablas, vistas, funciones y seguridad)
+├── backend/
+│   ├── main.py           Punto de entrada de FastAPI (CORS y registro de rutas)
 │   ├── app/
-│   │   ├── main.py      Punto de entrada FastAPI
-│   │   ├── core/        Configuración global
-│   │   ├── models/      Entidades del dominio (red, nodos, arcos)
-│   │   ├── schemas/     Contratos de entrada/salida de la API (Pydantic)
-│   │   ├── api/routes/  Endpoints, uno por módulo
-│   │   └── services/    Lógica de negocio, un paquete por módulo
-│   ├── data/escenarios/ Datos del caso (dataConfig.json = caso base)
-│   └── tests/           Pruebas unitarias (pytest)
-└── frontend/            Interfaz web (React + Vite)
+│   │   ├── core/         Configuración (.env)
+│   │   ├── db/           Conexión y modelos ORM (SQLAlchemy)
+│   │   ├── schemas/      Contratos de entrada y salida (Pydantic)
+│   │   ├── api/routes/   Endpoints, uno por módulo
+│   │   └── services/     Lógica: red, exacto, genetico, sensibilidad, comparativo
+│   ├── data/escenarios/  dataConfig.json (caso base)
+│   ├── scripts/          sembrar_bd.py (carga los JSON en la base de datos)
+│   └── tests/            Pruebas con pytest
+└── frontend/
     └── src/
-        ├── api/         Cliente HTTP hacia el backend
-        ├── pages/       Una página por módulo
-        ├── components/  Componentes reutilizables (matrices, grafo, gráficas)
-        ├── hooks/       Lógica de estado reutilizable
-        ├── utils/       Formateadores y helpers
-        └── styles/      Estilos globales
+        ├── api/          Cliente HTTP
+        ├── pages/        Inicio, Parametrización, Exacto, Genético, Sensibilidad, Comparativo
+        ├── components/   Matrices, grafo de la red, gráficas
+        ├── context/      Estado global de la red
+        └── utils/        Formato y exportación a CSV
 ```
-
-## Módulos y responsables
-
-| Módulo | Backend | Frontend | Rol |
-|---|---|---|---|
-| Red / parametrización | `services/red`, `routes/red.py` | `pages/Parametrizacion` | 1 y 4 |
-| Exacto | `services/exacto` | `pages/Exacto` | 2 |
-| Genético | `services/genetico` | `pages/Genetico` | 3 |
-| Sensibilidad | `services/sensibilidad` | `pages/Sensibilidad` | 2 y 4 |
-| Comparativo | `services/comparativo` | `pages/Comparativo` | 4 |
-
-## Datos del caso base
-
-`backend/data/escenarios/dataConfig.json` contiene oferta de las 10 agroempresas, capacidad y
-costo operativo de las 4 plantas, matriz de distancias (km) y costo de transporte por km·ton.
-
-La matriz de costos **no** se guarda en el JSON; el backend la calcula
-(`services/red/repositorio.py`):
-
-```
-c_ij = distancia_ij × costo_transporte_km_ton + costo_operativo_j     [COP/ton]
-```
-
-Para otro escenario basta con copiar el archivo con otro nombre y modificarlo;
-aparece automáticamente en `GET /api/red/escenarios`.
 
 ## Cómo ejecutar
 
-### Backend
+### Requisitos
+
+- Python 3.11 o superior
+- Node.js 18 o superior
+- (Opcional) un proyecto en Supabase
+
+### 1. Backend
+
 ```bash
 cd backend
 python -m venv .venv
 # Windows: .venv\Scripts\activate   |   Linux/Mac: source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+cp .env.example .env        # en Windows: copy .env.example .env
+uvicorn main:app --reload
 ```
-API en http://localhost:8000 — documentación interactiva en http://localhost:8000/docs
 
-### Frontend
+- API: http://localhost:8000
+- Documentación interactiva: http://localhost:8000/docs
+
+> ⚠️ Use `pulp==2.9.0` (ya está fijado en `requirements.txt`). Con PuLP 3 o 4 el modelo exacto falla.
+
+### 2. Frontend
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Interfaz en http://localhost:5173
 
-### Pruebas
+Interfaz: http://localhost:5173
+
+### 3. Base de datos (opcional)
+
+1. En Supabase, abra **SQL Editor**, pegue `supabase/crear_base_datos_ecoresiduos.sql` y ejecútelo.
+2. En `backend/.env` ponga `FUENTE_DATOS=bd`, `DATABASE_URL` (Session pooler) y `DATABASE_PASSWORD`.
+3. Cargue el caso base:
+   ```bash
+   cd backend
+   python -m scripts.sembrar_bd
+   ```
+
+Con la base de datos activa, la interfaz guarda el historial:
+
+- **Parametrización → Guardar en BD**: guarda la red actual como escenario con un nombre.
+- **Modelo exacto / Algoritmo genético → Guardar en historial**: guarda la solución contra ese escenario. La base calcula el gap del AG contra el último exacto del mismo escenario. Solo se habilita si la red no tiene cambios sin guardar.
+- **Comparativo → Historial en la base de datos**: último exacto frente a último AG por escenario y las últimas ejecuciones guardadas.
+
+Sin base de datos (`FUENTE_DATOS=json`) todo lo demás funciona igual y esos botones solo muestran un aviso.
+
+Para más detalle, vea [docs/base-datos/GUIA_BASE_DATOS.md](docs/base-datos/GUIA_BASE_DATOS.md).
+
+### 4. Pruebas
+
 ```bash
 cd backend
 pytest
 ```
-`tests/test_exacto.py` usa el caso base como prueba automática: Z* = 132 532 000 COP/sem,
-precios sombra y nodo ficticio E11 deben coincidir con las tablas del informe.
 
-> Usar `pulp==2.9.0` (fijado en `requirements.txt`): la API de PuLP 4.x cambió.
+`tests/test_exacto.py` usa el caso base como referencia: Z\*, los precios sombra y el nodo ficticio E11 deben coincidir con el informe.
 
 ## Endpoints principales
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/api/red/escenarios/{nombre}` | Red en formato dataConfig |
-| GET | `/api/red/escenarios/{nombre}/problema` | Red convertida (oferta, capacidad, costos) |
-| POST | `/api/red/problema` | Convierte una red editada en la interfaz |
-| POST | `/api/red/validar` | Errores de datos y estado de balance |
-| POST | `/api/exacto/resolver` | Modelo exacto: asignación, Z*, duales, costos reducidos, nodo ficticio, verificación ✔/✘ |
-| POST | `/api/genetico/resolver` | AG (responde 501 mientras `algoritmo.ejecutar` no exista) |
-| POST | `/api/sensibilidad/rangos` | Rangos de costos, oferta y capacidad sin cambiar la base óptima |
-| POST | `/api/sensibilidad/simular` | Escenarios con exacto (y AG opcional) |
-| POST | `/api/sensibilidad/escenarios-predefinidos` | Escenarios sugeridos (combustible, oferta, cuellos de botella) |
-| POST | `/api/comparativo/reporte` | Exacto vs. AG en la red actual |
-| POST | `/api/comparativo/escalabilidad` | Redes sintéticas de 10, 20, 50 y 100 fuentes |
+| GET | `/red/escenarios` | Lista los escenarios disponibles |
+| GET | `/red/escenarios/{nombre}/problema` | Red convertida a oferta, capacidad y costos |
+| POST | `/red/validar` | Errores de datos y estado del balance |
+| POST | `/exacto/resolver` | Modelo exacto: Z\*, asignación, duales, verificación |
+| POST | `/genetico/resolver` | Algoritmo genético: mejor costo, asignación, tiempo, factibilidad e historial |
+| POST | `/sensibilidad/rangos` | Rangos de costos, oferta y capacidad |
+| POST | `/sensibilidad/simular` | Simulación de escenarios |
+| POST | `/sensibilidad/escenarios-predefinidos` | Combustible ±, oferta ±, cuellos de botella |
+| POST | `/comparativo/reporte` | Exacto vs. AG: costo, tiempo y gap |
+| POST | `/comparativo/escalabilidad` | Redes de 10, 20, 50 y 100 agroempresas |
+| GET/POST | `/escenarios` | Historial de escenarios *(requiere base de datos)* |
+| GET/POST | `/resultados` | Historial de ejecuciones *(requiere base de datos)* |
 
-## Flujo de trabajo en Git
+## Diagramas
 
-Ver [CONTRIBUTING.md](CONTRIBUTING.md).
+Pendientes: se guardarán en `docs/diagramas/` (hoy esa carpeta solo tiene un `LEEME.txt`):
+
+- diagrama de clases;
+- diagrama de flujo del modelo de transporte;
+- diagrama de flujo del algoritmo genético;
+- diagrama de secuencia del modelo exacto.
+
+```mermaid
+flowchart TD
+    A(["Inicio"]) --> B["Cargar red y calcular costos c_ij"]
+    B --> C{"¿Datos válidos?"}
+    C -- "No" --> C1["Mostrar errores"] --> Z(["Fin"])
+    C -- "Sí" --> D{"¿Oferta = capacidad?"}
+    D -- "No" --> D1["Agregar nodo ficticio"] --> E
+    D -- "Sí" --> E["Construir modelo PL en PuLP"]
+    E --> F["Resolver con CBC"]
+    F --> G["Calcular precios sombra<br/>y verificar restricciones"]
+    G --> H["Mostrar Z*, asignación y tiempo"] --> Z
+```

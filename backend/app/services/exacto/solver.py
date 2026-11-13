@@ -1,12 +1,3 @@
-"""Resolución del modelo y extracción de resultados (asignación, costo, duales).
-
-Precios sombra (convención del informe, sección II-F):
-* u_i (oferta): aumento de Z* si la agroempresa i entrega 1 t/sem más.
-* v_j (capacidad, ≤ 0): cambio de Z* por cada t/sem extra de capacidad en la planta j;
-  vale 0 si la planta tiene capacidad ociosa.
-Para que se cumpla esa convención el dual del nodo ficticio se fija en 0. Si la red ya está
-balanceada (no hay ficticio) los duales no son únicos y se normalizan con max_j v_j = 0.
-"""
 import time
 from dataclasses import dataclass
 
@@ -62,6 +53,10 @@ def resolver_detallado(problema: ProblemaTransporte, costo_no_procesado: float =
     modelo.lp.solve(pulp.PULP_CBC_CMD(msg=False))
     tiempo = time.perf_counter() - inicio
     estado = pulp.LpStatus[modelo.lp.status]
+    if estado == "Infeasible":
+        raise ProblemaInvalido(
+            "No existe una asignación factible: con las rutas deshabilitadas, alguna agroempresa "
+            "no puede enviar toda su oferta o alguna planta no puede recibir lo que le corresponde.")
     if estado != "Optimal":
         raise RuntimeError(f"El solver terminó con estado '{estado}'.")
 
@@ -74,7 +69,7 @@ def resolver_detallado(problema: ProblemaTransporte, costo_no_procesado: float =
     v0 = [modelo.lp.constraints[r].pi for r in modelo.r_demanda]
     if any(p is None for p in u0 + v0):
         u0 = v0 = None
-    base = arbol.construir_base(X, b.costos, u0, v0)
+    base = arbol.construir_base(X, b.costos, u0, v0, prohibidas=b.cerradas)
     u, v = _normalizar_duales(b, base, b.costos)
 
     n, m = b.n_real, b.m_real
@@ -88,7 +83,9 @@ def resolver_detallado(problema: ProblemaTransporte, costo_no_procesado: float =
     filas = verificar(asignacion, problema.oferta, problema.demanda, problema.fuentes,
                       problema.plantas, oferta_con_igualdad=not falta_capacidad)
     holgura_ok = all(abs(v[j]) < TOL or problema.demanda[j] - recibido[j] < TOL for j in range(m))
-    optimo_ok = (all(c >= -TOL for fila in reducidos_bal for c in fila)
+    # Las rutas cerradas no pueden entrar a la base: su costo reducido no cuenta para la optimalidad
+    optimo_ok = (all(reducidos_bal[i][j] >= -TOL for i in range(nb) for j in range(mb)
+                     if (i, j) not in b.cerradas)
                  and all(abs(reducidos_bal[i][j]) < TOL for i, j in base)
                  and (falta_capacidad or (all(x <= TOL for x in v[:m]) and holgura_ok)))
 
@@ -116,7 +113,8 @@ def resolver_detallado(problema: ProblemaTransporte, costo_no_procesado: float =
         nodo_ficticio=ficticio,
         variables_basicas=[f"{b.fuentes[i]}→{b.plantas[j]}" for i, j in sorted(base)],
         rutas_optimo_alternativo=[f"{b.fuentes[i]}→{b.plantas[j]}" for i in range(n) for j in range(m)
-                                  if (i, j) not in set(base) and abs(reducidos_bal[i][j]) < TOL],
+                                  if (i, j) not in set(base) and (i, j) not in b.cerradas
+                                  and abs(reducidos_bal[i][j]) < TOL],
         degenerada=sum(1 for i, j in base if X[i][j] > TOL) < nb + mb - 1,
         optimalidad_verificada=optimo_ok,
         verificacion=[VerificacionRestriccion(**f) for f in filas],

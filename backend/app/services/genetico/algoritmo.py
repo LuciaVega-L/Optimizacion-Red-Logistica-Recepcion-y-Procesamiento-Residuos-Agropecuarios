@@ -1,4 +1,17 @@
+"""Algoritmo Genético para el problema de transporte (agroempresas -> plantas).
+
+Dos formas de uso:
+
+* ejecutar(problema, parametros)  -> ResultadoGenetico    (API / comparativo / sensibilidad)
+* AlgoritmoGenetico(datosRed, ...).ejecutar()            -> dict (uso directo; datosRed como lo
+  arma _datos_desde_problema: agroempresas, plantas, matriz_costos, prohibidas, penalizaciones)
+
+El adaptador `ejecutar` construye los datos desde el MISMO modelo balanceado que usa el solver
+exacto (balancear(problema)): idénticos c_ij, ofertas, capacidades y nodo ficticio. Así ambos
+métodos resuelven el mismo problema y el gap es comparable.
+"""
 import random
+import time
 
 from .fitness import EvaluadorFitness
 from .cromosoma import FabricaCromosomas
@@ -19,7 +32,7 @@ class AlgoritmoGenetico:
         cruce: str = "un_punto",     # "un_punto" | "dos_puntos"
         numElites: int = 2,
         paciencia: int = 0,
-        semilla: int = None,
+        semilla: int | None = None,
     ):
         self.datosRed = datosRed
         self.tamanoPoblacion = tamanoPoblacion
@@ -44,15 +57,17 @@ class AlgoritmoGenetico:
             return ops.seleccion_ruleta(poblacion, aptitudes, self.rng)
         return ops.seleccion_torneo(poblacion, aptitudes, self.tamTorneo, self.rng)
 
-    def ejecutar(self, verbose: bool = True) -> dict:
+    def ejecutar(self, verbose: bool = False) -> dict:
         poblacion = self.fabrica.crearPoblacion(self.tamanoPoblacion)
         evaluaciones = self._evaluarPoblacion(poblacion)
 
         mejorCromosoma, mejorEval = None, None
         historial = []
         sinMejora = 0
+        generacionesEjecutadas = 0
 
         for gen in range(self.generaciones):
+            generacionesEjecutadas = gen + 1
             # Se ordena por costoTotalZ (menor = mejor): evita los empates por
             # redondeo que tendría el fitness 1/(1+Z) con Z del orden de 1e8.
             orden = sorted(range(len(poblacion)), key=lambda k: evaluaciones[k]["costoTotalZ"])
@@ -66,7 +81,6 @@ class AlgoritmoGenetico:
                 sinMejora += 1
 
             costos = [e["costoTotalZ"] for e in evaluaciones]
-          
             aptitudes = [1.0 / (1.0 + c) for c in costos]
             historial.append({
                 "generacion": gen,
@@ -108,14 +122,21 @@ class AlgoritmoGenetico:
             "mejorCromosoma": mejorCromosoma,
             "evaluacion": mejorEval,
             "historial": historial,
-            "asignacion": self.resumenAsignacion(mejorCromosoma),
+            "generacionesEjecutadas": generacionesEjecutadas,
+            "asignacion": self.resumenAsignacion(mejorCromosoma) if mejorCromosoma is not None else [],
         }
 
-    def resumenAsignacion(self, cromosoma: list, umbral: float = 0.01) -> list:
+    def resumenAsignacion(self, cromosoma: list, umbral: float = 0.01, soloReales: bool = False) -> list:
         """Lista legible: empresa -> planta -> toneladas/semana."""
+        nE = self.datosRed.get("n_real", len(self.fabrica.agroempresas)) if soloReales else None
+        nP = self.datosRed.get("m_real", len(self.fabrica.plantas)) if soloReales else None
         resumen = []
         for i, empresa in enumerate(self.fabrica.agroempresas):
+            if nE is not None and i >= nE:
+                continue
             for j, planta in enumerate(self.fabrica.plantas):
+                if nP is not None and j >= nP:
+                    continue
                 ton = cromosoma[i][j]
                 if ton > umbral:
                     resumen.append({
@@ -124,3 +145,94 @@ class AlgoritmoGenetico:
                         "toneladas": round(ton, 2),
                     })
         return resumen
+
+
+# ============================================================================ adaptador
+
+def _param(parametros, nombres, defecto):
+    """Lee el primer atributo existente (y no None) de `parametros` entre varios alias."""
+    for n in nombres:
+        v = parametros.get(n) if isinstance(parametros, dict) else getattr(parametros, n, None)
+        if v is not None:
+            return v
+    return defecto
+
+
+def _norm(texto, validos, defecto):
+    t = str(texto).strip().lower().replace(" ", "_").replace("-", "_")
+    t = t.replace("1_punto", "un_punto").replace("2_puntos", "dos_puntos")
+    return t if t in validos else defecto
+
+
+def _kwargs_desde_parametros(parametros) -> dict:
+    return {
+        "tamanoPoblacion": int(_param(parametros, ("tamano_poblacion", "tam_poblacion", "poblacion"), 100)),
+        "generaciones": int(_param(parametros, ("generaciones", "num_generaciones"), 300)),
+        "probCruce": float(_param(parametros, ("prob_cruce", "probabilidad_cruce", "tasa_cruce"), 0.9)),
+        "probMutacion": float(_param(parametros, ("prob_mutacion", "probabilidad_mutacion", "tasa_mutacion"), 0.2)),
+        "tamTorneo": int(_param(parametros, ("tam_torneo", "tamano_torneo", "k_torneo"), 3)),
+        "seleccion": _norm(_param(parametros, ("seleccion", "metodo_seleccion"), "torneo"),
+                           ("torneo", "ruleta"), "torneo"),
+        "cruce": _norm(_param(parametros, ("cruce", "metodo_cruce", "tipo_cruce"), "un_punto"),
+                       ("un_punto", "dos_puntos"), "un_punto"),
+        "numElites": int(_param(parametros, ("num_elites", "elites", "elitismo"), 2)),
+        "paciencia": int(_param(parametros, ("paciencia", "early_stopping"), 0)),
+        "semilla": _param(parametros, ("semilla", "seed"), None),
+    }
+
+
+def _datos_desde_problema(problema) -> dict:
+    """Mismos datos que el solver exacto: red balanceada (incluye el nodo ficticio)."""
+    from app.services.exacto.modelo import balancear
+    b = balancear(problema)
+    return {
+        "agroempresas": [{"id": f, "nombre": f, "oferta_ton_sem": float(b.oferta[i])}
+                         for i, f in enumerate(b.fuentes)],
+        "plantas": [{"id": p, "nombre": p, "capacidad_maxima_ton_sem": float(b.demanda[j])}
+                    for j, p in enumerate(b.plantas)],
+        "matriz_costos": [[float(c) for c in fila] for fila in b.costos],
+        "n_real": b.n_real,
+        "m_real": b.m_real,
+        "prohibidas": sorted(b.cerradas),
+        # λ de los datos (dataConfig "penalizaciones"); sin ellos, fitness.py usa el mayor c_ij
+        "penalizaciones": {k: float(v) for k, v in (("factorPlanta", problema.penalizacion_oferta),
+                                                    ("factorDemanda", problema.penalizacion_capacidad))
+                           if v is not None},
+    }
+
+
+def ejecutar(problema, parametros=None):
+    """Punto de entrada del API: ProblemaTransporte + ParametrosAG -> ResultadoGenetico."""
+    from app.schemas.red import ParametrosAG
+    from app.schemas.resultados import ResultadoGenetico
+
+    parametros = parametros if parametros is not None else ParametrosAG()
+    datos = _datos_desde_problema(problema)
+    ag = AlgoritmoGenetico(datos, **_kwargs_desde_parametros(parametros))
+
+    t0 = time.perf_counter()
+    res = ag.ejecutar(verbose=False)
+    tiempo = time.perf_counter() - t0
+
+    cromo, ev = res["mejorCromosoma"], res["evaluacion"]
+    nR, mR = datos["n_real"], datos["m_real"]
+    # Z sin penalización, solo rutas reales (las del nodo ficticio no son transporte)
+    costo_real = sum(datos["matriz_costos"][i][j] * cromo[i][j] for i in range(nR) for j in range(mR))
+
+    campos = {
+        "metodo": "genetico",   # revisa en schemas/resultados.py si es un Literal con otro valor
+        "costo_total": round(costo_real, 2),
+        "tiempo_s": round(tiempo, 4),
+        "factible": bool(ev["esFactible"]),
+        "asignacion": [[round(cromo[i][j], 4) for j in range(mR)] for i in range(nR)],
+        "historial": res["historial"],
+        # Convergencia: mejor Z por generación (el campo que espera ResultadoGenetico)
+        "historial_fitness": [round(h["mejorCostoZ"], 2) for h in res["historial"]],
+        "generaciones_ejecutadas": res["generacionesEjecutadas"],
+        "costo_penalizado": ev["costoTotalZ"],
+        "evaluacion": ev,
+    }
+    validos = getattr(ResultadoGenetico, "model_fields", None)
+    if validos is not None:
+        campos = {k: v for k, v in campos.items() if k in validos}
+    return ResultadoGenetico(**campos)

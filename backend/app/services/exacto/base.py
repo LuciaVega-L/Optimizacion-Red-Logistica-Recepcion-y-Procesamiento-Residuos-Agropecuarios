@@ -31,9 +31,9 @@ class UnionFind:
         return True
 
 
-def construir_base(X, costos, u0=None, v0=None, tol: float = TOL) -> list[tuple[int, int]]:
-    """Celdas basicas: las de flujo positivo y, si la solución es degenerada, se completan
-    con celdas de costo reducido sin formar ciclos."""
+def construir_base(X, costos, u0=None, v0=None, tol: float = TOL, prohibidas=()) -> list[tuple[int, int]]:
+    """Celdas básicas: las de flujo positivo y, si la solución es degenerada, se completan
+    con celdas de costo reducido ~0 (según los duales del solver u0, v0) sin formar ciclos."""
     n, m = len(X), len(X[0])
     uf = UnionFind([("r", i) for i in range(n)] + [("c", j) for j in range(m)])
     base = []
@@ -48,7 +48,9 @@ def construir_base(X, costos, u0=None, v0=None, tol: float = TOL) -> list[tuple[
             return 0.0
         return abs(costos[i][j] - u0[i] - v0[j])
 
-    candidatas = sorted(((i, j) for i in range(n) for j in range(m) if (i, j) not in set(base)),
+    # Una ruta deshabilitada nunca completa la base: no puede llevar flujo
+    candidatas = sorted(((i, j) for i in range(n) for j in range(m)
+                         if (i, j) not in set(base) and (i, j) not in prohibidas),
                         key=lambda c: (costo_reducido(*c), costos[c[0]][c[1]]))
     for i, j in candidatas:
         if len(base) == n + m - 1:

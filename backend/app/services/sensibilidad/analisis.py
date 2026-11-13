@@ -40,17 +40,20 @@ def rangos_costos(d: DetalleExacto) -> list[dict]:
     nb, mb = len(b.fuentes), len(b.plantas)
     reducido = [[b.costos[i][j] - d.u[i] - d.v[j] for j in range(mb)] for i in range(nb)]
     en_base = set(base)
+    fuera = en_base | b.cerradas          # celdas que no pueden entrar a la base
     filas = []
     for i in range(b.n_real):
         for j in range(b.m_real):
+            if (i, j) in b.cerradas:      # ruta deshabilitada: no tiene rango, no se informa
+                continue
             c = b.costos[i][j]
             if (i, j) in en_base:
                 S = arbol.componente_sin_celda(base, (i, j), ("r", i))
                 sube = min((reducido[r][k] for r in range(nb) for k in range(mb)
-                            if (r, k) not in en_base and ("r", r) in S and ("c", k) not in S),
+                            if (r, k) not in fuera and ("r", r) in S and ("c", k) not in S),
                            default=math.inf)
                 baja = min((reducido[r][k] for r in range(nb) for k in range(mb)
-                            if (r, k) not in en_base and ("r", r) not in S and ("c", k) in S),
+                            if (r, k) not in fuera and ("r", r) not in S and ("c", k) in S),
                            default=math.inf)
             else:
                 sube, baja = math.inf, reducido[i][j]
@@ -125,7 +128,8 @@ def base_se_mantiene(d_base: DetalleExacto, problema: ProblemaTransporte) -> boo
         return False
     n, m = len(b1.fuentes), len(b1.plantas)
     u, v = arbol.duales_desde_base(d_base.base, b1.costos, n, m)
-    return all(b1.costos[i][j] - u[i] - v[j] >= -TOL for i in range(n) for j in range(m))
+    return all(b1.costos[i][j] - u[i] - v[j] >= -TOL for i in range(n) for j in range(m)
+               if (i, j) not in b1.cerradas)
 
 
 def _ejecutar_ag(problema: ProblemaTransporte, parametros: ParametrosAG | None):

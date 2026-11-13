@@ -7,7 +7,9 @@ export default function GraficaSensibilidad({ escenarios }) {
   const datos = validos.map((e) => e.variacion_costo_pct)
   return (
     <div className="grafica">
-      <Bar data={{
+      <Bar role="img"
+        aria-label={`Variación de Z* por escenario: ${validos.map((e) => `${e.nombre} ${e.variacion_costo_pct.toFixed(2)} %`).join('; ')}`}
+        data={{
         labels: validos.map((e) => e.nombre),
         datasets: [{
           label: 'Variación de Z* frente al caso base (%)', data: datos,
