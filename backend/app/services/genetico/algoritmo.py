@@ -68,8 +68,7 @@ class AlgoritmoGenetico:
 
         for gen in range(self.generaciones):
             generacionesEjecutadas = gen + 1
-            # Se ordena por costoTotalZ (menor = mejor): evita los empates por
-            # redondeo que tendría el fitness 1/(1+Z) con Z del orden de 1e8.
+    
             orden = sorted(range(len(poblacion)), key=lambda k: evaluaciones[k]["costoTotalZ"])
             idxMejor = orden[0]
 
@@ -117,6 +116,12 @@ class AlgoritmoGenetico:
 
             poblacion = nueva
             evaluaciones = self._evaluarPoblacion(poblacion)
+
+        if poblacion and evaluaciones:
+            idxMejor = min(range(len(poblacion)), key=lambda k: evaluaciones[k]["costoTotalZ"])
+            if mejorEval is None or evaluaciones[idxMejor]["costoTotalZ"] < mejorEval["costoTotalZ"] - 1e-6:
+                mejorCromosoma = FabricaCromosomas.copiar(poblacion[idxMejor])
+                mejorEval = dict(evaluaciones[idxMejor])
 
         return {
             "mejorCromosoma": mejorCromosoma,
@@ -226,7 +231,6 @@ def ejecutar(problema, parametros=None):
         "factible": bool(ev["esFactible"]),
         "asignacion": [[round(cromo[i][j], 4) for j in range(mR)] for i in range(nR)],
         "historial": res["historial"],
-        # Convergencia: mejor Z por generación (el campo que espera ResultadoGenetico)
         "historial_fitness": [round(h["mejorCostoZ"], 2) for h in res["historial"]],
         "generaciones_ejecutadas": res["generacionesEjecutadas"],
         "costo_penalizado": ev["costoTotalZ"],
