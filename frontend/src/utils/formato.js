@@ -8,9 +8,12 @@ export const numero = (v, decimales = 0) =>
   num(v) === null ? '—'
     : new Intl.NumberFormat('es-CO', { maximumFractionDigits: decimales }).format(v)
 
-export const porcentaje = (v) => (num(v) === null ? '—' : `${v.toFixed(2)} %`)
+// Decimales con coma (es-CO): 1,38 % y 20,759 s
+const fijo = (v, d) => new Intl.NumberFormat('es-CO', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v)
 
-export const segundos = (v) => (num(v) === null ? '—' : `${v.toFixed(3)} s`)
+export const porcentaje = (v) => (num(v) === null ? '—' : `${fijo(v, 2)} %`)
+
+export const segundos = (v) => (num(v) === null ? '—' : `${fijo(v, 3)} s`)
 
 // En los rangos de sensibilidad el backend envía null cuando no hay límite.
 export const limite = (v, fmt = numero) => (v === null || v === undefined ? '∞' : fmt(v))

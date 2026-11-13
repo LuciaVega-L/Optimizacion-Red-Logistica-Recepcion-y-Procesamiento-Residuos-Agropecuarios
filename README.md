@@ -16,7 +16,7 @@ Sistema web que minimiza el costo semanal de transportar residuos agropecuarios 
 | Base de datos (Supabase) | ✅ Listo | Historial de escenarios y resultados |
 | Informe IEEE | 🟡 En progreso | En `docs/informe-ieee/` |
 
-Pruebas: **62 pasan**, ninguna omitida.
+Pruebas: **63 pasan**; las 5 de la base de datos se omiten si `FUENTE_DATOS` no es `bd`.
 
 ## Equipo y roles
 
@@ -52,7 +52,8 @@ Con el caso base el resultado es **Z\* = 132.532.000 COP/semana**, con la agroem
 - **Aptitud:** `fitness = 1 / (1 + Z)`, con Z = costo + penalizaciones. La selección compara Z directamente.
 - **Operadores:** selección por torneo o ruleta, cruce de uno o dos puntos y mutación que traslada toneladas de una planta a otra dentro de la misma empresa (conserva la oferta).
 - **Parámetros ajustables desde la interfaz:** población (100), generaciones (500), tasa de cruce (0,8), tasa de mutación (0,05), tipo de selección, tipo de cruce y semilla.
-- **Calidad:** el gap se calcula como (Z_AG − Z_exacto) / Z_exacto × 100. Con los parámetros por defecto y semilla 1 el caso base da 134.370.550 COP/semana (gap ≈ 1,39 %).
+- **Constantes del diseño:** tamaño de torneo 3 y 2 élites (`TAM_TORNEO` y `NUM_ELITES` en `genetico/algoritmo.py`); el criterio de parada es el número de generaciones.
+- **Calidad:** el gap se calcula como (Z_AG − Z_exacto) / Z_exacto × 100. Con los parámetros por defecto y semilla 1 el caso base da 134.366.554 COP/semana (gap ≈ 1,38 %).
 
 ## Arquitectura
 

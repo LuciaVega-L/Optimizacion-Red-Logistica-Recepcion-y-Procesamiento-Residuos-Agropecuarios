@@ -1,5 +1,6 @@
 // Variación del costo óptimo (%) en cada escenario simulado, frente al caso base.
 import { Bar } from 'react-chartjs-2'
+import { porcentaje } from '../../utils/formato.js'
 import { COLORES } from './registro.js'
 
 export default function GraficaSensibilidad({ escenarios }) {
@@ -8,7 +9,7 @@ export default function GraficaSensibilidad({ escenarios }) {
   return (
     <div className="grafica">
       <Bar role="img"
-        aria-label={`Variación de Z* por escenario: ${validos.map((e) => `${e.nombre} ${e.variacion_costo_pct.toFixed(2)} %`).join('; ')}`}
+        aria-label={`Variación de Z* por escenario: ${validos.map((e) => `${e.nombre} ${porcentaje(e.variacion_costo_pct)}`).join('; ')}`}
         data={{
         labels: validos.map((e) => e.nombre),
         datasets: [{
@@ -18,7 +19,7 @@ export default function GraficaSensibilidad({ escenarios }) {
       }} options={{
         indexAxis: 'y', responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false },
-          tooltip: { callbacks: { label: (c) => `${c.raw.toFixed(2)} %` } } },
+          tooltip: { callbacks: { label: (c) => porcentaje(c.raw) } } },
         scales: { x: { title: { display: true, text: 'Variación de Z* (%)' } } },
       }} />
     </div>

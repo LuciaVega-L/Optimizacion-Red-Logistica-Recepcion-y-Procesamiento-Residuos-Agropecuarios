@@ -146,7 +146,7 @@ export default function Comparativo() {
               <GraficaComparativa etiquetas={['Costo total']} exacto={[exacto.costo_total]}
                 genetico={[genetico?.costo_total ?? null]} formato={millones} tituloEje="COP / semana" />
               <GraficaComparativa etiquetas={['Tiempo']} exacto={[exacto.tiempo_s]}
-                genetico={[genetico?.tiempo_s ?? null]} formato={(v) => `${Number(v).toFixed(3)} s`} tituloEje="segundos" />
+                genetico={[genetico?.tiempo_s ?? null]} formato={(v) => segundos(Number(v))} tituloEje="segundos" />
             </div>
           </>
         )}
@@ -236,10 +236,10 @@ export default function Comparativo() {
               <GraficaComparativa etiquetas={escalabilidad.map((f) => `${f.n_fuentes}×${f.n_plantas}`)}
                 exacto={escalabilidad.map((f) => f.tiempo_exacto_s)}
                 genetico={escalabilidad.map((f) => f.tiempo_ag_promedio_s ?? null)}
-                formato={(v) => `${Number(v).toFixed(3)} s`} tituloEje="Tiempo (s)" logaritmica />
+                formato={(v) => segundos(Number(v))} tituloEje="Tiempo (s)" logaritmica />
               {escalabilidad.some((f) => f.gap_promedio_pct != null) && <GraficaComparativa etiquetas={escalabilidad.map((f) => `${f.n_fuentes}×${f.n_plantas}`)}
                 exacto={escalabilidad.map(() => 0)} genetico={escalabilidad.map((f) => f.gap_promedio_pct ?? null)}
-                formato={(v) => `${Number(v).toFixed(2)} %`} tituloEje="Gap promedio (%)" />}
+                formato={(v) => porcentaje(Number(v))} tituloEje="Gap promedio (%)" />}
             </div>
             <div className="tabla-contenedor">
               <table className="tabla tabla--compacta tabla--numeros">
