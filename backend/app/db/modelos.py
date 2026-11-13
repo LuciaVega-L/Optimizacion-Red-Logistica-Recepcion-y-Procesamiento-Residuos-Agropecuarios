@@ -40,8 +40,8 @@ class Escenario(Base):
     parametros_entrada: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
     es_base: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
     costo_transporte_km_ton: Mapped[Decimal] = mapped_column(Numeric, server_default=text("1200"))
-    factor_penalizacion_oferta: Mapped[Decimal] = mapped_column(Numeric, server_default=text("1000"))
-    factor_penalizacion_capacidad: Mapped[Decimal] = mapped_column(Numeric, server_default=text("1000"))
+    factor_penalizacion_oferta: Mapped[Decimal] = mapped_column(Numeric, server_default=text("100000000"))
+    factor_penalizacion_capacidad: Mapped[Decimal] = mapped_column(Numeric, server_default=text("100000000"))
     escenario_origen_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("escenarios.id", ondelete="SET NULL"))
     variaciones: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
