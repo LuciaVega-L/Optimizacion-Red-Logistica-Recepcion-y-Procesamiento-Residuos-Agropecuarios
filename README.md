@@ -16,7 +16,7 @@ Sistema web que minimiza el costo semanal de transportar residuos agropecuarios 
 | Base de datos (Supabase) | ✅ Listo | Historial de escenarios y resultados |
 | Informe IEEE | 🟡 En progreso | En `docs/informe-ieee/` |
 
-Pruebas: **47 pasan y 6 se omiten** (las omitidas están pendientes de activar).
+Pruebas: **62 pasan**, ninguna omitida.
 
 ## Equipo y roles
 
@@ -82,13 +82,11 @@ Sin base de datos, el sistema lee los escenarios de `backend/data/escenarios/*.j
 ├── contexto/             Enunciado del proyecto
 ├── docs/                 Informe IEEE, diagramas, formulación y guía de la base de datos
 ├── supabase/             Scripts SQL (tablas, vistas, funciones y seguridad)
-├── instalar_bd.py        Instalador de los archivos de la base de datos
 ├── backend/
+│   ├── main.py           Punto de entrada de FastAPI (CORS y registro de rutas)
 │   ├── app/
-│   │   ├── main.py       Punto de entrada de FastAPI
 │   │   ├── core/         Configuración (.env)
 │   │   ├── db/           Conexión y modelos ORM (SQLAlchemy)
-│   │   ├── models/       Entidades del dominio (red, nodos, arcos)
 │   │   ├── schemas/      Contratos de entrada y salida (Pydantic)
 │   │   ├── api/routes/   Endpoints, uno por módulo
 │   │   └── services/     Lógica: red, exacto, genetico, sensibilidad, comparativo
@@ -148,6 +146,14 @@ Interfaz: http://localhost:5173
    python -m scripts.sembrar_bd
    ```
 
+Con la base de datos activa, la interfaz guarda el historial:
+
+- **Parametrización → Guardar en BD**: guarda la red actual como escenario con un nombre.
+- **Modelo exacto / Algoritmo genético → Guardar en historial**: guarda la solución contra ese escenario. La base calcula el gap del AG contra el último exacto del mismo escenario. Solo se habilita si la red no tiene cambios sin guardar.
+- **Comparativo → Historial en la base de datos**: último exacto frente a último AG por escenario y las últimas ejecuciones guardadas.
+
+Sin base de datos (`FUENTE_DATOS=json`) todo lo demás funciona igual y esos botones solo muestran un aviso.
+
 Para más detalle, vea [docs/base-datos/GUIA_BASE_DATOS.md](docs/base-datos/GUIA_BASE_DATOS.md).
 
 ### 4. Pruebas
@@ -178,7 +184,7 @@ pytest
 
 ## Diagramas
 
-Están en `docs/diagramas/`:
+Pendientes: se guardarán en `docs/diagramas/` (hoy esa carpeta solo tiene un `LEEME.txt`):
 
 - diagrama de clases;
 - diagrama de flujo del modelo de transporte;

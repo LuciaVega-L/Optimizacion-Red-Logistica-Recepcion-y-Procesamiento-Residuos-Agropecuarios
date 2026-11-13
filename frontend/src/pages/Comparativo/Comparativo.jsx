@@ -15,6 +15,7 @@ import Plegable from '../../components/comunes/Plegable.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
 import GraficaComparativa from '../../components/graficas/GraficaComparativa.jsx'
+import HistorialBD from '../../components/historial/HistorialBD.jsx'
 import { millones } from '../../components/graficas/registro.js'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
@@ -276,6 +277,8 @@ const compararActual = () => actual.ejecutar(async () => {
           </>
         )}
       </Tarjeta>
+
+      <HistorialBD />
     </section>
   )
 }

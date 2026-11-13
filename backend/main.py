@@ -9,14 +9,11 @@ from app.db.sesion import ErrorBaseDatos
 
 app = FastAPI(title=settings.app_nombre, version="0.1.0")
 
-origenes_permitidos = [
-    "http://localhost:5173",  # React/Vite (desarrollo)
-    "http://127.0.0.1:5173",  # Por si acaso
-]
-
+# Orígenes permitidos: CORS_ORIGENES y CORS_LOCALHOST en backend/.env (ver app/core/config.py)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origenes_permitidos, 
+    allow_origins=settings.cors_origenes_lista,
+    allow_origin_regex=settings.cors_regex,
     allow_credentials=True,
     allow_methods=["*"],  # Permite GET, POST, OPTIONS, etc.
     allow_headers=["*"],

@@ -11,6 +11,7 @@ import EstadoVacio from '../../components/comunes/EstadoVacio.jsx'
 import Icono from '../../components/comunes/Icono.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
+import GuardarResultado from '../../components/historial/GuardarResultado.jsx'
 import GraficaConvergencia from '../../components/graficas/GraficaConvergencia.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
@@ -145,6 +146,7 @@ export default function Genetico() {
                 detalle={res.generaciones_ejecutadas < (parametros.generaciones ?? 0) ? 'Parada anticipada' : undefined} />
             )}
           </div>
+          <GuardarResultado solucion={res} extra={{ parametros_algoritmo: res.parametros ?? parametros }} />
           <Tarjeta titulo="Convergencia">
             {curva.length > 0
               ? <GraficaConvergencia historial={curva} optimo={optimo ?? null}

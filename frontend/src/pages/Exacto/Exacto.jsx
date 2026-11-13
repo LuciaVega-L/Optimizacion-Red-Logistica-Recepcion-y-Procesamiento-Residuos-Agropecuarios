@@ -10,6 +10,7 @@ import Icono from '../../components/comunes/Icono.jsx'
 import Plegable from '../../components/comunes/Plegable.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
+import GuardarResultado from '../../components/historial/GuardarResultado.jsx'
 import VistaRed from '../../components/grafo/VistaRed.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
@@ -75,6 +76,7 @@ export default function Exacto() {
               tono={res.optimalidad_verificada ? 'ok' : 'error'} />
             <Tarjeta titulo="Tiempo" valor={segundos(res.tiempo_s)} />
           </div>
+          <GuardarResultado solucion={res} extra={{ parametros_algoritmo: { solver: 'CBC (PuLP)' } }} />
 
           {res.nodo_ficticio && (
             <Aviso tipo="info" titulo={`Nodo ficticio ${res.nodo_ficticio.id}`}>

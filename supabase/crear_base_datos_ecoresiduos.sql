@@ -38,9 +38,9 @@ create table if not exists public.escenarios (
     es_base                         boolean not null default false,
     costo_transporte_km_ton         numeric not null default 1200
                                     check (costo_transporte_km_ton >= 0),
-    factor_penalizacion_oferta      numeric not null default 1000
+    factor_penalizacion_oferta      numeric not null default 100000000
                                     check (factor_penalizacion_oferta >= 0),
-    factor_penalizacion_capacidad   numeric not null default 1000
+    factor_penalizacion_capacidad   numeric not null default 100000000
                                     check (factor_penalizacion_capacidad >= 0),
     escenario_origen_id             uuid references public.escenarios(id) on delete set null,
     variaciones                     jsonb not null default '{}'::jsonb,
@@ -471,8 +471,8 @@ as $$
 declare
     v_id        uuid;
     v_cu        numeric := coalesce((p_config #>> '{parametros_globales,costo_transporte_km_ton}')::numeric, 1200);
-    v_pen_o     numeric := coalesce((p_config #>> '{penalizaciones,factorPlanta}')::numeric, 1000);
-    v_pen_c     numeric := coalesce((p_config #>> '{penalizaciones,factorDemanda}')::numeric, 1000);
+    v_pen_o     numeric := coalesce((p_config #>> '{penalizaciones,factorPlanta}')::numeric, 100000000);
+    v_pen_c     numeric := coalesce((p_config #>> '{penalizaciones,factorDemanda}')::numeric, 100000000);
     v_desc      text    := coalesce(p_descripcion, p_config #>> '{_meta,descripcion}');
     v_faltante  record;
 begin
