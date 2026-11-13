@@ -51,26 +51,17 @@ Tablas de apoyo: `agroempresas`, `plantas` y `rutas` guardan la red editable G =
 
 ---
 
-## Paso 1. Instalar los archivos en el repo
+## Paso 1. Archivos del proyecto
 
-Copien `instalar_bd.py` en la **carpeta general del repo** (donde están `backend/` y
-`frontend/`) y ejecútenlo:
-
-```powershell
-cd C:\Users\Lenovo\Documents\GitHub\Optimizacion-Red-Logistica-Recepcion-y-Procesamiento-Residuos-Agropecuarios
-python instalar_bd.py
-```
-
-El instalador crea o actualiza todos los archivos, borra los de la versión anterior con
-`supabase-py` y guarda una copia `*.antes_bd.bak` de cada archivo que reemplaza. Al final
-muestra la lista de lo que hizo. Revisen que todo esté bien, borren los `.bak` y luego
-borren `instalar_bd.py`.
+Todos los archivos de la base de datos (SQL, ORM, repositorio, endpoints y pruebas) ya están
+en el repositorio. No hay que instalar nada: el antiguo `instalar_bd.py` se usó una sola vez
+para agregarlos y se eliminó.
 
 ## Paso 2. Crear las tablas en Supabase
 
 En Supabase: **SQL Editor → New query**.
 
-1. **Solo esta vez**, porque ya existían tablas de la versión anterior: abran
+1. **Solo si ya existían tablas de una versión anterior**: abran
    `supabase/reiniciar_base_datos.sql`, copien todo, péguenlo y den **Run**.
    Si Supabase avisa de "operaciones destructivas", acepten: borra las tablas viejas.
 2. En otra consulta, peguen `supabase/crear_base_datos_ecoresiduos.sql` completo y den **Run**.
