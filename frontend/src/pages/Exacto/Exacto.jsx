@@ -10,7 +10,7 @@ import Icono from '../../components/comunes/Icono.jsx'
 import Plegable from '../../components/comunes/Plegable.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
-import GrafoRed from '../../components/grafo/GrafoRed.jsx'
+import VistaRed from '../../components/grafo/VistaRed.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
 import { usePeticion } from '../../hooks/usePeticion.js'
@@ -97,10 +97,8 @@ export default function Exacto() {
                 totalesColumna={res.plantas.map((_, j) => res.asignacion.reduce((a, f) => a + f[j], 0))}
                 etiquetaTotalColumna="Recibido" etiquetaTotalFila="Enviado" />
             </Tarjeta>
-            <Tarjeta titulo="Flujos en la red">
-              <GrafoRed fuentes={res.fuentes} plantas={res.plantas} asignacion={res.asignacion}
-                ficticio={res.nodo_ficticio} />
-            </Tarjeta>
+            <VistaRed titulo="Flujos en la red" fuentes={res.fuentes} plantas={res.plantas}
+              asignacion={res.asignacion} ficticio={res.nodo_ficticio} />
           </div>
 
           <Plegable titulo="Precios sombra y holguras">

@@ -24,13 +24,13 @@ export default function GrafoRed({ fuentes, plantas, asignacion, ficticio, alto 
       arcos.push({ from: `f:${f}`, to: `p:${p}`, arrows: 'to',
         width: asignacion ? 1 + 7 * (x / maximo) : 0.5,
         label: asignacion ? `${numero(x, 1)} t` : undefined,
-        color: { color: asignacion ? '#1d4ed8' : '#cbd5e1' }, font: { size: 11, align: 'middle' } })
+        color: { color: asignacion ? '#1e3a8a' : '#64748b' }, font: { size: 11, align: 'middle' } })
     }))
     if (ficticio?.tipo === 'fuente') {
       nodos.push({ id: `f:${ficticio.id}`, label: `${ficticio.id} (ficticia)`, x: -420, y: fuentes.length * sep,
         color: { background: '#f1f5f9', border: '#94a3b8' }, shape: 'box', shapeProperties: { borderDashes: true } })
       ficticio.flujos.forEach((x, j) => x > 1e-6 && arcos.push({ from: `f:${ficticio.id}`, to: `p:${plantas[j]}`,
-        arrows: 'to', dashes: true, label: `${numero(x, 1)} t ociosas`, color: { color: '#94a3b8' } }))
+        arrows: 'to', dashes: true, label: `${numero(x, 1)} t ociosas`, color: { color: '#475569' } }))
     }
     const red = new Network(ref.current, { nodes: nodos, edges: arcos }, {
       physics: false, nodes: { font: { size: 15, face: 'Inter, system-ui, sans-serif' }, margin: 8, borderWidth: 1.5 }, interaction: { dragNodes: true, zoomView: true },

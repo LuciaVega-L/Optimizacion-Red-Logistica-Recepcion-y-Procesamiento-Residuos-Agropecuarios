@@ -113,7 +113,8 @@ export default function Genetico() {
             <Tarjeta titulo="Tiempo" valor={segundos(res.tiempo_s)} />
           </div>
           <Tarjeta titulo="Convergencia">
-            <GraficaConvergencia historial={res.historial_fitness} optimo={null} etiqueta="Fitness del mejor individuo" />
+            <GraficaConvergencia historial={res.historial_fitness} optimo={optimo ?? null}
+              etiqueta="Mejor costo Z por generación (COP/sem)" />
           </Tarjeta>
           <Tarjeta titulo="Mejor asignación (t/sem)">
             <TablaMatriz filas={problema.fuentes} columnas={problema.plantas} matriz={res.asignacion}

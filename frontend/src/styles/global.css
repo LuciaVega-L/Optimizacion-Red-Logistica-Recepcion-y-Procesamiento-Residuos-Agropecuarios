@@ -128,6 +128,23 @@ input[type='checkbox'] { min-height: 0; width: 1.125rem; height: 1.125rem; accen
 .grafica { position: relative; height: 320px; margin-bottom: var(--esp-4); }
 .grafo { border: var(--borde-ancho) solid var(--color-borde); border-radius: var(--radio-md); background: var(--color-superficie-alt); }
 
+/* Selector Grafo / Mapa */
+.selector-vista { display: inline-flex; border: var(--borde-ancho) solid var(--color-borde-fuerte); border-radius: var(--radio-md); overflow: hidden; }
+.selector-vista__opcion { font: inherit; font-size: var(--texto-sm); padding: var(--esp-1) var(--esp-3); min-height: 2rem; border: 0; background: var(--color-superficie); color: var(--color-texto); cursor: pointer; }
+.selector-vista__opcion + .selector-vista__opcion { border-left: var(--borde-ancho) solid var(--color-borde-fuerte); }
+.selector-vista__opcion--activa { background: var(--color-primario); color: var(--color-sobre-primario); }
+.selector-vista__opcion:focus-visible { outline: 2px solid var(--color-primario); outline-offset: -2px; }
+
+/* Mapa real (Leaflet) */
+.mapa { border: var(--borde-ancho) solid var(--color-borde); border-radius: var(--radio-md); z-index: 0; }
+.mapa-planta { display: flex; align-items: center; justify-content: center; width: 34px; height: 24px; border-radius: var(--radio-sm); background: #1d4ed8; color: #fff; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .35); font: 600 11px/1 Inter, system-ui, sans-serif; box-sizing: border-box; }
+.leaflet-tooltip.mapa-etiqueta { background: transparent; border: 0; box-shadow: none; padding: 0; font: 600 11px/1 Inter, system-ui, sans-serif; color: #14532d; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; }
+.leaflet-tooltip.mapa-etiqueta::before { display: none; }
+.mapa__leyenda { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-1) var(--esp-3); margin: var(--esp-2) 0 0; }
+.mapa__punto { display: inline-block; width: 12px; height: 12px; margin-right: calc(-1 * var(--esp-2)); vertical-align: middle; }
+.mapa__punto--fuente { border-radius: 50%; background: #15803d; }
+.mapa__punto--planta { border-radius: 2px; background: #1d4ed8; }
+
 @media print {
   .layout__nav, .no-imprimir, .boton { display: none !important; }
   .layout__contenido { padding: 0; }

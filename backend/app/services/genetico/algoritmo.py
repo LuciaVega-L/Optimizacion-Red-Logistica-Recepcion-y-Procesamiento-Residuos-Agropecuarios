@@ -220,6 +220,8 @@ def ejecutar(problema, parametros=None):
         "factible": bool(ev["esFactible"]),
         "asignacion": [[round(cromo[i][j], 4) for j in range(mR)] for i in range(nR)],
         "historial": res["historial"],
+        # Convergencia: mejor Z por generación (el campo que espera ResultadoGenetico)
+        "historial_fitness": [round(h["mejorCostoZ"], 2) for h in res["historial"]],
         "generaciones_ejecutadas": res["generacionesEjecutadas"],
         "costo_penalizado": ev["costoTotalZ"],
         "evaluacion": ev,

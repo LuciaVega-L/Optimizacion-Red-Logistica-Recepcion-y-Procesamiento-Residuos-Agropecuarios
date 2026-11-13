@@ -1,12 +1,3 @@
-"""Resolución del modelo y extracción de resultados (asignación, costo, duales).
-
-Precios sombra (convención del informe, sección II-F):
-* u_i (oferta): aumento de Z* si la agroempresa i entrega 1 t/sem más.
-* v_j (capacidad, ≤ 0): cambio de Z* por cada t/sem extra de capacidad en la planta j;
-  vale 0 si la planta tiene capacidad ociosa.
-Para que se cumpla esa convención el dual del nodo ficticio se fija en 0. Si la red ya está
-balanceada (no hay ficticio) los duales no son únicos y se normalizan con max_j v_j = 0.
-"""
 import time
 from dataclasses import dataclass
 
