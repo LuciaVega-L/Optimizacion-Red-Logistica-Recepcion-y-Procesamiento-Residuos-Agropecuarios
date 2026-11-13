@@ -82,7 +82,6 @@ Sin base de datos, el sistema lee los escenarios de `backend/data/escenarios/*.j
 ├── contexto/             Enunciado del proyecto
 ├── docs/                 Informe IEEE, diagramas, formulación y guía de la base de datos
 ├── supabase/             Scripts SQL (tablas, vistas, funciones y seguridad)
-├── instalar_bd.py        Instalador de los archivos de la base de datos
 ├── backend/
 │   ├── app/
 │   │   ├── main.py       Punto de entrada de FastAPI
