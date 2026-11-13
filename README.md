@@ -146,6 +146,14 @@ Interfaz: http://localhost:5173
    python -m scripts.sembrar_bd
    ```
 
+Con la base de datos activa, la interfaz guarda el historial:
+
+- **Parametrización → Guardar en BD**: guarda la red actual como escenario con un nombre.
+- **Modelo exacto / Algoritmo genético → Guardar en historial**: guarda la solución contra ese escenario. La base calcula el gap del AG contra el último exacto del mismo escenario. Solo se habilita si la red no tiene cambios sin guardar.
+- **Comparativo → Historial en la base de datos**: último exacto frente a último AG por escenario y las últimas ejecuciones guardadas.
+
+Sin base de datos (`FUENTE_DATOS=json`) todo lo demás funciona igual y esos botones solo muestran un aviso.
+
 Para más detalle, vea [docs/base-datos/GUIA_BASE_DATOS.md](docs/base-datos/GUIA_BASE_DATOS.md).
 
 ### 4. Pruebas
