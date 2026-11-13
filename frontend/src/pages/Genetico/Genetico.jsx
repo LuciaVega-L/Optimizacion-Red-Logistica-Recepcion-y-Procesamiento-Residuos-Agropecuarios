@@ -11,6 +11,7 @@ import EstadoVacio from '../../components/comunes/EstadoVacio.jsx'
 import Icono from '../../components/comunes/Icono.jsx'
 import SinDatos from '../../components/comunes/SinDatos.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
+import GuardarResultado from '../../components/historial/GuardarResultado.jsx'
 import GraficaConvergencia from '../../components/graficas/GraficaConvergencia.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import { useNotificaciones } from '../../context/NotificacionesContext.jsx'
@@ -112,6 +113,7 @@ export default function Genetico() {
             <Tarjeta titulo="Factible" valor={res.factible ? 'Sí' : 'No'} tono={res.factible ? 'ok' : 'error'} />
             <Tarjeta titulo="Tiempo" valor={segundos(res.tiempo_s)} />
           </div>
+          <GuardarResultado solucion={res} extra={{ parametros_algoritmo: res.parametros ?? parametros }} />
           <Tarjeta titulo="Convergencia">
             <GraficaConvergencia historial={res.historial_fitness} optimo={optimo ?? null}
               etiqueta="Mejor costo Z por generación (COP/sem)" />

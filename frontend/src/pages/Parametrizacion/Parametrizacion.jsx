@@ -10,6 +10,7 @@ import { EsqueletoKpis, EsqueletoTabla } from '../../components/comunes/Esquelet
 import Icono from '../../components/comunes/Icono.jsx'
 import Plegable from '../../components/comunes/Plegable.jsx'
 import Tarjeta from '../../components/comunes/Tarjeta.jsx'
+import GuardarEscenario from '../../components/historial/GuardarEscenario.jsx'
 import MatrizEditable from '../../components/matrices/MatrizEditable.jsx'
 import TablaMatriz from '../../components/matrices/TablaMatriz.jsx'
 import VectorEditable from '../../components/matrices/VectorEditable.jsx'
@@ -41,9 +42,8 @@ export default function Parametrizacion() {
   const [cargandoEscenario, setCargandoEscenario] = useState(false)
   const { notificar } = useNotificaciones()
 
-  useEffect(() => {
-    listarEscenarios().then(setEscenarios).catch(() => { setEscenarios([]); setErrorLista(true) })
-  }, [])
+  const listar = () => listarEscenarios().then(setEscenarios).catch(() => { setEscenarios([]); setErrorLista(true) })
+  useEffect(() => { listar() }, [])
 
   const cargar = async () => {
     if (!window.confirm('Se reemplazarán los cambios actuales por el escenario seleccionado. ¿Continuar?')) return
@@ -146,6 +146,7 @@ export default function Parametrizacion() {
             <Boton variante="secundario" onClick={cargar} cargando={cargandoEscenario}>Cargar</Boton>
           </div>
           {errorLista && <p className="texto-suave">No se pudo obtener la lista del servidor; solo está el caso base.</p>}
+          <GuardarEscenario escenarios={escenarios} onGuardado={(nombre) => { listar(); setSeleccion(nombre) }} />
         </Tarjeta>
         <Tarjeta titulo="Costo de transporte">
           <label className="campo">COP por km·tonelada
