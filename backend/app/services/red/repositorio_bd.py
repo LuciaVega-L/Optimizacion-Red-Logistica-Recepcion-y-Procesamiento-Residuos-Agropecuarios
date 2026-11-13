@@ -16,7 +16,7 @@ from decimal import Decimal
 from typing import Any
 
 from pydantic import BaseModel
-from sqlalchemy import func, select, text
+from sqlalchemy import select, text
 from sqlalchemy.orm import selectinload
 
 from app.db.modelos import Escenario, PrecioSombra, Resultado
@@ -220,8 +220,3 @@ def historial_comparativo(escenario: str | None = None) -> list[dict]:
             params["e"] = escenario
         filas = s.execute(text(sql + " order by fecha_ultimo_resultado desc nulls last"), params)
         return [_fila_a_dict(f) for f in filas]
-
-
-def contar_resultados() -> int:
-    with sesion() as s:
-        return s.scalar(select(func.count()).select_from(Resultado))
