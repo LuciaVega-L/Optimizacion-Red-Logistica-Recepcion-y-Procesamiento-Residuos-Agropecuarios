@@ -13,8 +13,7 @@ class FabricaCromosomas:
     def __init__(self, datosRed: dict, generador: random.Random = None):
         self.agroempresas = datosRed.get("agroempresas", [])
         self.plantas = datosRed.get("plantas", [])
-        self.matrizDistancias = datosRed.get("matriz_distancias_km", {})
-        self.matrizCostos = datosRed.get("matriz_costos")   # modo matriz (opcional)
+        self.matrizCostos = datosRed["matriz_costos"]   # c_ij del modelo balanceado
         self.rng = generador or random.Random()
 
         self.numEmpresas = len(self.agroempresas)
@@ -32,15 +31,8 @@ class FabricaCromosomas:
     def copiar(cromosoma: list) -> list:
         return [fila[:] for fila in cromosoma]
 
-    def _distancia(self, i: int, j: int) -> float:
-        idE = self.agroempresas[i].get("id")
-        idP = self.plantas[j].get("id")
-        return float(self.matrizDistancias.get(idE, {}).get(idP, 1.0))
-
     def _costoRuta(self, i: int, j: int) -> float:
-        if self.matrizCostos:
-            return float(self.matrizCostos[i][j])
-        return self._distancia(i, j)
+        return float(self.matrizCostos[i][j])
 
     def _escalarFila(self, pesos: list, oferta: float, i: int | None = None) -> list:
         """Reparte la oferta de la fila i en proporción a los pesos, sin usar rutas cerradas."""
@@ -124,9 +116,7 @@ class FabricaCromosomas:
             costos = [self._costoRuta(i, j) for j in range(self.numPlantas)]
             # normaliza por el mínimo para que el sesgo no dependa de la escala de los costos
             ref = max(min(costos), 1e-9)
-            pesos = [1.0 / ((c / ref) ** exponente) if c > 0 else 1.0 for c in costos] \
-                if self.matrizCostos else \
-                [1.0 / ((c + 1.0) ** exponente) for c in costos]
+            pesos = [1.0 / ((c / ref) ** exponente) if c > 0 else 1.0 for c in costos]
             cromosoma.append(self._escalarFila(pesos, self.ofertas[i], i))
         return cromosoma
 

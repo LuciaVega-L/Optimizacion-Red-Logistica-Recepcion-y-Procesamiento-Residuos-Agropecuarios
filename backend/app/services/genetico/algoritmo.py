@@ -3,7 +3,8 @@
 Dos formas de uso:
 
 * ejecutar(problema, parametros)  -> ResultadoGenetico    (API / comparativo / sensibilidad)
-* AlgoritmoGenetico(datosRed, ...).ejecutar()            -> dict (uso directo, scripts, pruebas)
+* AlgoritmoGenetico(datosRed, ...).ejecutar()            -> dict (uso directo; datosRed como lo
+  arma _datos_desde_problema: agroempresas, plantas, matriz_costos, prohibidas, penalizaciones)
 
 El adaptador `ejecutar` construye los datos desde el MISMO modelo balanceado que usa el solver
 exacto (balancear(problema)): idénticos c_ij, ofertas, capacidades y nodo ficticio. Así ambos
