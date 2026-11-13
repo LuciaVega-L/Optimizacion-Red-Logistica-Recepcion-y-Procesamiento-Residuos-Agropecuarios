@@ -107,6 +107,8 @@ input[type='checkbox'] { min-height: 0; width: 1.125rem; height: 1.125rem; accen
 .tabla tfoot th, .tabla tfoot td { border-top: var(--borde-ancho) solid var(--color-borde-fuerte); border-bottom: 0; background: var(--color-superficie-alt); }
 .tabla--compacta th, .tabla--compacta td { padding: var(--esp-1) var(--esp-2); }
 .tabla--compacta input[type='number'] { width: 5.5rem; }
+.guardar-resultado { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2) var(--esp-3); margin: 0 0 var(--esp-4); }
+.guardar-resultado p { margin: 0; display: inline-flex; align-items: center; gap: var(--esp-1); }
 .guardar-escenario { margin-top: var(--esp-3); padding-top: var(--esp-3); border-top: var(--borde-ancho) solid var(--color-borde); }
 .guardar-escenario > p { margin: 0 0 var(--esp-2); }
 .celda-ruta { display: flex; align-items: center; gap: var(--esp-1); }
