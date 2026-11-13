@@ -34,10 +34,10 @@ class ProblemaTransporte(BaseModel):
 
 
 class ParametrosAG(BaseModel):
-    poblacion: int = 100
-    generaciones: int = 500
-    tasa_cruce: float = 0.8
-    tasa_mutacion: float = 0.05
+    poblacion: int = Field(100, ge=2)
+    generaciones: int = Field(500, ge=1)
+    tasa_cruce: float = Field(0.8, ge=0, le=1)
+    tasa_mutacion: float = Field(0.05, ge=0, le=1)
     seleccion: str = "torneo"  # "torneo" | "ruleta"
     tipo_cruce: str = "un_punto"  # "un_punto" | "dos_puntos"
     semilla: int | None = None

@@ -1,4 +1,4 @@
-"""Base óptima del problema de transporte como árbol generador.
+"""Base optima del problema de transporte como árbol generador.
 
 En un problema de transporte balanceado de n' fuentes y m' plantas, una solución básica
 tiene n' + m' - 1 variables básicas que forman un árbol entre filas ("r", i) y columnas ("c", j).
