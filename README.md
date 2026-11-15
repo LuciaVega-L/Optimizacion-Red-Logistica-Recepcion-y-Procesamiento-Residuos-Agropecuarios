@@ -14,11 +14,11 @@ Sistema web que minimiza el costo semanal de transportar residuos agropecuarios 
 | Análisis de sensibilidad | ✅ Listo | Rangos de la base óptima y simulación de escenarios |
 | Reporte comparativo | ✅ Listo | Exacto vs. AG: costo, tiempo, gap y escalabilidad |
 | Base de datos (Supabase) | ✅ Listo | Historial de escenarios y resultados |
-| Diagramas UML | ✅ Listo | 7 diagramas en `docs/diagramas/` (Mermaid y PNG) |
-| Manual técnico | ✅ Listo | `docs/manual-tecnico/` (Word y PDF) |
-| Informe IEEE | 🟡 En progreso | En `docs/informe-ieee/` |
+| Diagramas UML | ✅ Listo | 7 diagramas en `docs/diagramas/` (PNG) |
+| Manual técnico y usuario | ✅ Listo | `docs/manuales/` (Word y PDF) |
+| Informe IEEE | ✅ Listo | En `docs/informe-ieee/` |
 
-Pruebas: **63 pasan**; las 5 de la base de datos se omiten si `FUENTE_DATOS` no es `bd`.
+Pruebas: **63 pasan**
 
 ## Equipo y roles
 
@@ -125,9 +125,6 @@ pip install -r requirements.txt
 cp .env.example .env        # en Windows: copy .env.example .env
 uvicorn main:app --reload
 ```
-
-- API: http://localhost:8000
-- Documentación interactiva: http://localhost:8000/docs
 
 > ⚠️ Use `pulp==2.9.0` (ya está fijado en `requirements.txt`). Con PuLP 3 o 4 el modelo exacto falla.
 
