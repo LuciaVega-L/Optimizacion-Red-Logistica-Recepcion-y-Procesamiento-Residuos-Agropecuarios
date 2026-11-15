@@ -184,30 +184,3 @@ pytest
 | GET/POST | `/escenarios` | Historial de escenarios *(requiere base de datos)* |
 | GET/POST | `/resultados` | Historial de ejecuciones *(requiere base de datos)* |
 
-## Diagramas
-
-Están en `docs/diagramas/`, cada uno como código Mermaid (`.mmd`, editable) y como imagen (`.png`):
-
-| Archivo | Diagrama |
-|---|---|
-| `01_flujo_solucion_exacta` | Flujo de la solución exacta |
-| `02_flujo_algoritmo_genetico` | Flujo del algoritmo genético |
-| `03_clases` | Clases del sistema (entidad, control) |
-| `04_secuencia_solucion_exacta` | Secuencia del modelo exacto (interfaz, control, entidad) |
-| `05_secuencia_algoritmo_genetico` | Secuencia del algoritmo genético (interfaz, control, entidad) |
-| `06_casos_de_uso` | Casos de uso (HU1 a HU6 y RF13) |
-| `07_arquitectura` | Arquitectura cliente-servidor |
-
-```mermaid
-flowchart TD
-    A(["Inicio"]) --> B["Cargar red y calcular costos c_ij"]
-    B --> C{"¿Datos válidos?"}
-    C -- "No" --> C1["Mostrar errores"] --> Z(["Fin"])
-    C -- "Sí" --> D{"¿Oferta = capacidad?"}
-    D -- "No" --> D1["Agregar nodo ficticio"] --> E
-    D -- "Sí" --> E["Construir modelo PL en PuLP"]
-    E --> F["Resolver con el método símplex (CBC)"]
-    F --> G["Base óptima y precios sombra (MODI)"]
-    G --> H["Verificar restricciones"]
-    H --> I["Mostrar Z*, asignación y tiempo"] --> Z
-```
